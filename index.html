@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Set Time Calculator</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%232d2d45'/><rect x='1' y='8' width='6' height='16' rx='2' fill='%233a3a4a'/><rect x='2' y='10' width='2' height='3' rx='1' fill='%23e4e4ea' opacity='.5'/><rect x='2' y='15' width='2' height='3' rx='1' fill='%23e4e4ea' opacity='.5'/><rect x='2' y='20' width='2' height='3' rx='1' fill='%23e4e4ea' opacity='.5'/><rect x='25' y='8' width='6' height='16' rx='2' fill='%233a3a4a'/><rect x='28' y='10' width='2' height='3' rx='1' fill='%23e4e4ea' opacity='.5'/><rect x='28' y='15' width='2' height='3' rx='1' fill='%23e4e4ea' opacity='.5'/><rect x='28' y='20' width='2' height='3' rx='1' fill='%23e4e4ea' opacity='.5'/><rect x='8' y='6' width='16' height='20' rx='4' fill='%234a4870'/><rect x='8' y='6' width='16' height='6' fill='%232d2d3a'/><line x1='10' y1='6' x2='8' y2='12' stroke='%235e5ce6' stroke-width='2'/><line x1='14' y1='6' x2='12' y2='12' stroke='%235e5ce6' stroke-width='2'/><line x1='18' y1='6' x2='16' y2='12' stroke='%235e5ce6' stroke-width='2'/><line x1='22' y1='6' x2='20' y2='12' stroke='%235e5ce6' stroke-width='2'/><circle cx='16' cy='20' r='6' fill='none' stroke='%23ffffff' stroke-width='1' opacity='.4'/><line x1='16' y1='20' x2='16' y2='15' stroke='white' stroke-width='1.5' stroke-linecap='round' opacity='.9'/><line x1='16' y1='20' x2='20' y2='21' stroke='%235e5ce6' stroke-width='1.5' stroke-linecap='round'/></svg>">
+<meta property="og:title" content="Set Time Calculator">
+<meta property="og:description" content="Film & TV billable hours, overtime & meal penalties — ACCP rates">
+<meta property="og:image" content="https://kristianwood.github.io/set-calculator/preview.png">
+<meta property="og:url" content="https://kristianwood.github.io/set-calculator">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Set Time Calculator">
+<meta name="twitter:description" content="Film & TV billable hours, overtime & meal penalties — ACCP rates">
+<meta name="twitter:image" content="https://kristianwood.github.io/set-calculator/preview.png">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --glass: rgba(255,255,255,0.52);
+  --glass-border: rgba(255,255,255,0.82);
+  --glass-input: rgba(255,255,255,0.42);
+  --glass-input-focus: rgba(255,255,255,0.72);
+  --glass-deep: rgba(255,255,255,0.28);
+  --text:  #1c1c1e;
+  --text2: #48484a;
+  --text3: #8e8e93;
+  --shadow: 0 4px 24px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.05);
+  --shadow-card: 0 8px 32px rgba(0,0,0,0.09), 0 1.5px 4px rgba(0,0,0,0.06);
+  --radius: 22px; --radius-sm: 18px; --radius-xs: 14px;
+  --accent: #5e5ce6; --accent-dim: rgba(94,92,230,0.12); --accent-border: rgba(94,92,230,0.25);
+  --green: #34c759; --green-dim: rgba(52,199,89,0.12);
+  --amber: #ff9500; --amber-dim: rgba(255,149,0,0.12);
+  --orange: #ff6b00; --orange-dim: rgba(255,107,0,0.12);
+  --red: #ff3b30; --red-dim: rgba(255,59,48,0.12);
+  --warn-dim: rgba(255,149,0,0.10);
+}
+html { height: 100%; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  min-height: 100vh;
+  background: #e4e4ea;
+  background-image:
+    radial-gradient(ellipse 70% 55% at 15% 10%, rgba(94,92,230,0.08) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 45% at 88% 85%, rgba(52,199,89,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 35% at 75% 15%, rgba(255,149,0,0.04) 0%, transparent 45%);
+  background-attachment: fixed;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Screen system ── */
+.screen { display: none; min-height: 100vh; }
+.screen.active { display: flex; flex-direction: column; }
+
+/* ── Splash ── */
+#splash {
+  align-items: center;
+  justify-content: center;
+  padding: env(safe-area-inset-top, 0px) 32px env(safe-area-inset-bottom, 0px);
+  text-align: center;
+  min-height: 100vh;
+}
+.splash-logo-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 56px;
+  gap: 20px;
+}
+.splash-svg {
+  width: min(220px, 60vw);
+  height: auto;
+  filter: drop-shadow(0 4px 20px rgba(94,92,230,0.22)) drop-shadow(0 1px 6px rgba(0,0,0,0.10));
+}
+.splash-title {
+  font-size: clamp(24px, 6vw, 32px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  line-height: 1.1;
+}
+
+/* Bubbly liquid glass button */
+.splash-credit {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text3);
+  letter-spacing: 0.01em;
+  margin-bottom: 36px;
+}
+.splash-btn {
+  display: inline-block;
+  padding: 17px 60px;
+  font-size: 18px; font-weight: 700; font-family: inherit;
+  letter-spacing: -0.01em; color: white; border: none;
+  border-radius: 50px; cursor: pointer;
+  position: relative; overflow: hidden;
+  background: linear-gradient(160deg, rgba(120,118,255,0.95) 0%, rgba(80,78,220,0.98) 50%, rgba(60,58,200,1) 100%);
+  box-shadow:
+    0 8px 32px rgba(94,92,230,0.40),
+    0 2px 8px rgba(94,92,230,0.25),
+    inset 0 1px 0 rgba(255,255,255,0.45),
+    inset 0 -1px 0 rgba(0,0,0,0.15);
+  transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.18s;
+}
+.splash-btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 100%);
+  border-radius: 50px 50px 0 0;
+  pointer-events: none;
+}
+.splash-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 12px 40px rgba(94,92,230,0.48), 0 4px 12px rgba(94,92,230,0.28), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -1px 0 rgba(0,0,0,0.15);
+}
+.splash-btn:active { transform: scale(0.97); }
+
+/* ── Role picker ── */
+#rolepicker { padding: 0 18px; }
+.rp-inner { max-width: 580px; margin: 0 auto; padding: 52px 0 80px; }
+.back-btn { display: inline-flex; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; font-size: 16px; font-weight: 600; color: var(--accent); font-family: inherit; padding: 0; margin-bottom: 28px; }
+.back-btn svg { width: 10px; height: 16px; }
+.rp-title { font-size: 28px; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 6px; }
+.rp-sub { font-size: 14px; color: var(--text3); margin-bottom: 24px; }
+.role-group { margin-bottom: 16px; }
+.rg-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  background: var(--green-dim);
+  color: var(--green);
+  border-radius: 6px;
+  padding: 2px 6px;
+  margin-left: 6px;
+  vertical-align: middle;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.role-sub {
+  font-size: 12px;
+  color: var(--text3);
+  margin: -6px 0 8px 0;
+  padding: 0 2px;
+}
+.ri-rate-flat {
+  color: var(--green) !important;
+  font-weight: 600;
+}
+.role-group-label { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; color: var(--text3); text-transform: uppercase; padding: 0 6px; margin-bottom: 8px; }
+.role-list { background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--radius); backdrop-filter: blur(28px) saturate(160%); -webkit-backdrop-filter: blur(28px) saturate(160%); box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.9); overflow: hidden; }
+.role-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; transition: background 0.12s; -webkit-tap-highlight-color: transparent; }
+.role-item:last-child { border-bottom: none; }
+.role-item:hover { background: rgba(94,92,230,0.04); }
+.role-item:active { background: rgba(94,92,230,0.08); }
+.ri-name { font-size: 15px; font-weight: 500; color: var(--text); }
+.ri-right { display: flex; align-items: center; gap: 8px; }
+.ri-rate { font-size: 14px; font-weight: 600; color: var(--accent); background: var(--accent-dim); padding: 3px 10px; border-radius: 20px; }
+.ri-chevron { color: var(--text3); font-size: 18px; line-height: 1; }
+.custom-role-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--radius); backdrop-filter: blur(28px) saturate(160%); -webkit-backdrop-filter: blur(28px) saturate(160%); box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.9); padding: 18px; margin-bottom: 16px; }
+.custom-role-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 14px; }
+.custom-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 12px; font-weight: 600; color: var(--text3); padding-left: 2px; }
+.field input { width: 100%; padding: 11px 14px; font-size: 16px; font-weight: 500; font-family: inherit; color: var(--text); background: var(--glass-input); border: 1px solid rgba(255,255,255,0.7); border-radius: var(--radius-xs); outline: none; -webkit-appearance: none; transition: border-color 0.2s, box-shadow 0.2s; box-shadow: inset 0 1px 3px rgba(0,0,0,0.04); }
+.field input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); background: var(--glass-input-focus); }
+.custom-note { font-size: 12px; color: var(--text3); margin-bottom: 14px; line-height: 1.5; }
+
+/* Bubbly glass action buttons (reused for custom submit + calc) */
+.bubble-btn {
+  width: 100%; padding: 15px;
+  font-size: 16px; font-weight: 700; font-family: inherit;
+  letter-spacing: -0.01em; color: white; border: none;
+  border-radius: 50px; cursor: pointer;
+  position: relative; overflow: hidden;
+  background: linear-gradient(160deg, rgba(120,118,255,0.95) 0%, rgba(80,78,220,0.98) 50%, rgba(60,58,200,1) 100%);
+  box-shadow:
+    0 6px 24px rgba(94,92,230,0.38),
+    0 2px 6px rgba(94,92,230,0.20),
+    inset 0 1px 0 rgba(255,255,255,0.42),
+    inset 0 -1px 0 rgba(0,0,0,0.14);
+  transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.18s;
+}
+.bubble-btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 50%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.20) 0%, rgba(255,255,255,0) 100%);
+  border-radius: 50px 50px 0 0;
+  pointer-events: none;
+}
+.bubble-btn:hover { transform: translateY(-1px) scale(1.01); box-shadow: 0 10px 32px rgba(94,92,230,0.44), 0 3px 8px rgba(94,92,230,0.22), inset 0 1px 0 rgba(255,255,255,0.42), inset 0 -1px 0 rgba(0,0,0,0.14); }
+.bubble-btn:active { transform: scale(0.97); }
+
+/* ── Calculator ── */
+#calculator { padding: 0 18px; }
+.calc-inner { max-width: 580px; margin: 0 auto; padding: 52px 0 80px; }
+.calc-header { margin-bottom: 28px; padding: 0 4px; }
+.calc-header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.calc-header h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.04em; line-height: 1.1; }
+.role-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  border-radius: 50px; padding: 7px 16px 7px 10px;
+  cursor: pointer; position: relative; overflow: hidden;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(20px);
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,0.8);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.role-chip::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 50%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0) 100%);
+  border-radius: 50px 50px 0 0; pointer-events: none;
+}
+.role-chip:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.8); }
+.role-chip-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; box-shadow: 0 0 0 2px var(--accent-dim); }
+.role-chip-name { font-size: 13px; font-weight: 600; color: var(--text2); }
+.role-chip-rate { font-size: 13px; font-weight: 700; color: var(--accent); }
+.calc-header p { font-size: 14px; color: var(--text3); margin-top: 6px; }
+
+.section { margin-bottom: 14px; }
+.section-label { font-size: 12px; font-weight: 600; letter-spacing: 0.05em; color: var(--text3); text-transform: uppercase; margin-bottom: 8px; padding: 0 6px; }
+.glass-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--radius); padding: 20px; backdrop-filter: blur(28px) saturate(160%); -webkit-backdrop-filter: blur(28px) saturate(160%); box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.9); }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+.row2:last-child { margin-bottom: 0; }
+.field-note { font-size: 11px; color: var(--text3); padding-left: 2px; margin-top: -2px; opacity: 0.8; }
+input[type="time"], input[type="number"] { width: 100%; padding: 11px 14px; font-size: 16px; font-weight: 500; font-family: inherit; letter-spacing: -0.01em; color: var(--text); background: var(--glass-input); border: 1px solid rgba(255,255,255,0.7); border-radius: var(--radius-xs); outline: none; transition: border-color 0.2s, background 0.2s, box-shadow 0.2s; -webkit-appearance: none; box-shadow: inset 0 1px 3px rgba(0,0,0,0.04); }
+input[type="time"]:focus, input[type="number"]:focus { border-color: var(--accent); background: var(--glass-input-focus); box-shadow: 0 0 0 3px var(--accent-dim); }
+input[type="number"] { -moz-appearance: textfield; }
+input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+.glass-divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(0,0,0,0.07), transparent); margin: 16px 0; }
+.toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.tgl-text .tl { font-size: 15px; font-weight: 500; color: var(--text); }
+.tgl-text .ts { font-size: 12px; color: var(--text3); margin-top: 3px; }
+.toggle { position: relative; width: 51px; height: 31px; flex-shrink: 0; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.track { position: absolute; inset: 0; background: rgba(0,0,0,0.12); border: 1px solid rgba(0,0,0,0.08); border-radius: 31px; cursor: pointer; transition: background 0.25s; }
+.toggle input:checked + .track { background: var(--accent); border-color: var(--accent); box-shadow: inset 0 1px 0 rgba(255,255,255,0.3); }
+.track::before { content: ''; position: absolute; width: 25px; height: 25px; left: 2px; top: 2px; background: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.9); transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1); }
+.toggle input:checked + .track::before { transform: translateX(20px); }
+
+/* Main calc button — big bubbly */
+.calc-btn {
+  width: 100%; padding: 17px; margin-top: 16px;
+  font-size: 17px; font-weight: 700; font-family: inherit;
+  letter-spacing: -0.01em; color: white; border: none;
+  border-radius: 50px; cursor: pointer;
+  position: relative; overflow: hidden;
+  background: linear-gradient(160deg, rgba(120,118,255,0.95) 0%, rgba(80,78,220,0.98) 50%, rgba(60,58,200,1) 100%);
+  box-shadow:
+    0 8px 28px rgba(94,92,230,0.40),
+    0 2px 6px rgba(94,92,230,0.22),
+    inset 0 1px 0 rgba(255,255,255,0.44),
+    inset 0 -1px 0 rgba(0,0,0,0.15);
+  transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.18s;
+}
+.calc-btn::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 50%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 100%);
+  border-radius: 50px 50px 0 0; pointer-events: none;
+}
+.calc-btn:hover { transform: translateY(-2px) scale(1.01); box-shadow: 0 12px 36px rgba(94,92,230,0.46), 0 4px 10px rgba(94,92,230,0.24), inset 0 1px 0 rgba(255,255,255,0.44), inset 0 -1px 0 rgba(0,0,0,0.15); }
+.calc-btn:active { transform: scale(0.97); }
+
+/* ── Results ── */
+.results { display: none; margin-top: 32px; }
+.results.show { display: block; }
+.res-title { font-size: 26px; font-weight: 700; color: var(--text); margin-bottom: 18px; letter-spacing: -0.03em; padding: 0 4px; display: flex; align-items: center; gap: 10px; }
+.on-badge { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px; background: var(--glass-deep); border: 1px solid rgba(0,0,0,0.08); color: var(--text3); }
+.alert { display: flex; gap: 12px; padding: 13px 16px; border-radius: var(--radius-sm); margin-bottom: 10px; border: 1px solid; backdrop-filter: blur(16px); }
+.alert-warn { background: rgba(255,149,0,0.08); border-color: rgba(255,149,0,0.22); }
+.alert-ok   { background: rgba(52,199,89,0.08);  border-color: rgba(52,199,89,0.22); }
+.alert-dot  { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+.dot-warn { background: var(--amber); } .dot-ok { background: var(--green); }
+.alert-msg { font-size: 13px; line-height: 1.55; font-weight: 500; }
+.alert-warn .alert-msg { color: #a65800; } .alert-ok .alert-msg { color: #1a7a35; }
+.metrics { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; margin-bottom: 14px; }
+.metric { background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); padding: 14px; backdrop-filter: blur(20px); box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,0.85); }
+.m-label { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 7px; }
+.m-val { font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -0.03em; line-height: 1; }
+.m-sub { font-size: 11px; color: var(--text3); margin-top: 5px; }
+.structure-row { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; margin-bottom: 14px; }
+.str-seg { background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--radius-xs); padding: 12px 8px; text-align: center; backdrop-filter: blur(16px); box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,0.85); }
+.str-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 5px; }
+.str-val { font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
+.str-val-muted { font-size: 15px; font-weight: 700; color: var(--text3); letter-spacing: -0.02em; }
+.str-sub { font-size: 10px; color: var(--text3); margin-top: 3px; }
+.cam-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.cam-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); padding: 13px 15px; backdrop-filter: blur(20px); box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,0.85); }
+.cam-label { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.cam-time { font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -0.03em; }
+.cam-note { font-size: 12px; color: var(--text3); margin-top: 4px; }
+.tl-wrap { margin-bottom: 14px; }
+.tl-bar { height: 8px; width: 100%; border-radius: 4px; overflow: hidden; display: flex; margin-bottom: 10px; background: rgba(0,0,0,0.06); box-shadow: inset 0 1px 2px rgba(0,0,0,0.08); }
+.tl-seg { height: 100%; }
+.tl-legend { display: flex; flex-wrap: wrap; gap: 12px; padding: 0 2px; }
+.tl-item { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text2); font-weight: 500; }
+.tl-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.bd-table { background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--radius); overflow: hidden; margin-bottom: 14px; backdrop-filter: blur(28px) saturate(160%); box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.9); }
+.bd-row { display: flex; align-items: center; padding: 13px 18px; border-bottom: 1px solid rgba(0,0,0,0.05); }
+.bd-row:last-child { border-bottom: none; }
+.bd-head { background: rgba(0,0,0,0.03); }
+.bd-name { flex: 1; font-size: 14px; font-weight: 500; color: var(--text); }
+.bd-detail { font-size: 13px; color: var(--text3); margin-right: 14px; min-width: 140px; text-align: right; }
+.bd-amt { font-size: 15px; font-weight: 700; min-width: 72px; text-align: right; color: var(--text); letter-spacing: -0.02em; }
+.bd-muted { color: var(--text3) !important; }
+.badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; margin-left: 6px; vertical-align: middle; }
+.b-green  { background: var(--green-dim);  color: #1a7a35; }
+.b-amber  { background: var(--amber-dim);  color: #a65800; }
+.b-orange { background: var(--orange-dim); color: #c44d00; }
+.b-red    { background: var(--red-dim);    color: #c0261e; }
+.b-warn   { background: var(--warn-dim);   color: #a65800; }
+.b-gray   { background: rgba(0,0,0,0.06);  color: var(--text3); }
+.b-unpaid { background: rgba(0,0,0,0.04);  color: var(--text3); }
+.b-accent { background: var(--accent-dim); color: var(--accent); }
+.total-bar { background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; backdrop-filter: blur(28px) saturate(160%); box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.9); }
+.total-label { font-size: 15px; font-weight: 600; color: var(--text3); }
+.total-val { font-size: 36px; font-weight: 800; color: var(--text); letter-spacing: -0.04em; }
+
+.copy-btn {
+  width: 100%; margin-top: 12px;
+  display: flex; align-items: center; justify-content: center; gap: 9px;
+  padding: 14px 20px;
+  font-size: 15px; font-weight: 600; font-family: inherit;
+  letter-spacing: -0.01em; color: var(--text2);
+  border-radius: 50px; cursor: pointer;
+  position: relative; overflow: hidden;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,0.85), inset 0 -1px 0 rgba(0,0,0,0.04);
+  transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.18s, color 0.2s;
+}
+.copy-btn::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 50%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.40) 0%, rgba(255,255,255,0) 100%);
+  border-radius: 50px 50px 0 0; pointer-events: none;
+}
+.copy-btn:hover { transform: translateY(-1px) scale(1.01); box-shadow: 0 6px 20px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.85); color: var(--accent); }
+.copy-btn:active { transform: scale(0.97); }
+.copy-btn.copied { color: #1a7a35; border-color: rgba(52,199,89,0.35); background: rgba(52,199,89,0.08); }
+
+@media (max-width: 420px) {
+  .structure-row { grid-template-columns: 1fr 1fr; }
+  .bd-detail { display: none; }
+  .m-val { font-size: 18px; }
+  .total-val { font-size: 28px; }
+  .calc-header h1 { font-size: 26px; }
+}
+/* ── Invoice Screen ── */
+.invoice-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 15px 20px;
+  font-size: 15px; font-weight: 600; font-family: inherit;
+  color: var(--accent); background: var(--accent-dim);
+  border: 1.5px solid var(--accent-border); border-radius: 14px;
+  cursor: pointer; margin-top: 10px; transition: all 0.18s;
+}
+.invoice-btn:hover { background: rgba(94,92,230,0.18); transform: translateY(-1px); }
+.invoice-btn:active { transform: scale(0.98); }
+
+.inv-section { margin-bottom: 22px; }
+.inv-section-label {
+  font-size: 12px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.07em; color: var(--text3); margin-bottom: 10px;
+}
+.inv-prefilled {
+  font-size: 10px; font-weight: 500; text-transform: none; letter-spacing: 0;
+  background: var(--accent-dim); color: var(--accent);
+  border-radius: 6px; padding: 2px 7px; margin-left: 8px; vertical-align: middle;
+}
+.inv-opt {
+  font-size: 11px; font-weight: 400; color: var(--text3); font-style: italic;
+}
+.inv-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+}
+.inv-full { grid-column: 1 / -1; }
+.inv-billing-preview {
+  background: var(--glass); border: 1.5px solid var(--glass-border);
+  border-radius: 14px; padding: 14px 16px; font-size: 13px; line-height: 1.7;
+  color: var(--text2);
+}
+.inv-billing-preview .inv-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 3px 0;
+}
+.inv-billing-preview .inv-row-total {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 0 2px; border-top: 1.5px solid var(--glass-border);
+  margin-top: 6px; font-weight: 700; font-size: 15px; color: var(--text);
+}
+.inv-billing-preview .inv-muted { color: var(--text3); font-style: italic; }
+.inv-actions {
+  display: flex; gap: 12px; margin-top: 8px; margin-bottom: 32px;
+}
+.inv-export-btn {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 16px 20px; font-size: 15px; font-weight: 700; font-family: inherit;
+  border-radius: 14px; cursor: pointer; border: none; transition: all 0.18s;
+  position: relative; overflow: hidden;
+}
+.inv-export-btn::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 50%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 100%);
+  border-radius: 14px 14px 0 0; pointer-events: none;
+}
+.inv-pdf {
+  background: linear-gradient(160deg, #ff4f4f 0%, #cc2222 100%);
+  color: white; box-shadow: 0 6px 20px rgba(204,34,34,0.30);
+}
+.inv-pdf:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(204,34,34,0.40); }
+.inv-word {
+  background: linear-gradient(160deg, #2b7ce0 0%, #1a5fb4 100%);
+  color: white; box-shadow: 0 6px 20px rgba(27,95,180,0.30);
+}
+.inv-word:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(27,95,180,0.40); }
+.inv-export-btn:active { transform: scale(0.97); }
+@media (max-width: 400px) {
+  .inv-grid { grid-template-columns: 1fr; }
+  .inv-full { grid-column: 1; }
+  .inv-actions { flex-direction: column; }
+}
+
+.sep-call-row {
+  display: flex; align-items: center; margin-top: 8px;
+}
+.sep-call-label {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 13px; font-weight: 500; color: var(--text3);
+  cursor: pointer; user-select: none;
+}
+.sep-call-label input[type="checkbox"] {
+  width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer;
+}
+
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+<!-- SCREEN 1: Splash -->
+<div id="splash" class="screen active">
+  <div class="splash-logo-wrap">
+    <svg viewBox="0 0 200 160" fill="none" xmlns="http://www.w3.org/2000/svg" class="splash-svg">
+      <!-- Film strip left -->
+      <rect x="10" y="40" width="36" height="80" rx="5" fill="#3a3a4a" opacity="0.85"/>
+      <rect x="16" y="48" width="10" height="12" rx="2" fill="#e4e4ea" opacity="0.5"/>
+      <rect x="16" y="66" width="10" height="12" rx="2" fill="#e4e4ea" opacity="0.5"/>
+      <rect x="16" y="84" width="10" height="12" rx="2" fill="#e4e4ea" opacity="0.5"/>
+      <rect x="16" y="102" width="10" height="12" rx="2" fill="#e4e4ea" opacity="0.5"/>
+      <!-- Film strip right -->
+      <rect x="154" y="40" width="36" height="80" rx="5" fill="#3a3a4a" opacity="0.85"/>
+      <rect x="174" y="48" width="10" height="12" rx="2" fill="#e4e4ea" opacity="0.5"/>
+      <rect x="174" y="66" width="10" height="12" rx="2" fill="#e4e4ea" opacity="0.5"/>
+      <rect x="174" y="84" width="10" height="12" rx="2" fill="#e4e4ea" opacity="0.5"/>
+      <rect x="174" y="102" width="10" height="12" rx="2" fill="#e4e4ea" opacity="0.5"/>
+      <!-- Main screen / frame -->
+      <rect x="48" y="32" width="104" height="96" rx="8" fill="url(#screenGrad)" stroke="rgba(255,255,255,0.35)" stroke-width="1.5"/>
+      <!-- Clapperboard stripes -->
+      <clipPath id="clip1"><rect x="48" y="32" width="104" height="28" rx="8"/></clipPath>
+      <rect x="48" y="32" width="104" height="28" fill="#2d2d3a" clip-path="url(#clip1)"/>
+      <g clip-path="url(#clip1)">
+        <line x1="58" y1="32" x2="48" y2="60" stroke="#5e5ce6" stroke-width="8"/>
+        <line x1="78" y1="32" x2="68" y2="60" stroke="#5e5ce6" stroke-width="8"/>
+        <line x1="98" y1="32" x2="88" y2="60" stroke="#5e5ce6" stroke-width="8"/>
+        <line x1="118" y1="32" x2="108" y2="60" stroke="#5e5ce6" stroke-width="8"/>
+        <line x1="138" y1="32" x2="128" y2="60" stroke="#5e5ce6" stroke-width="8"/>
+        <line x1="158" y1="32" x2="148" y2="60" stroke="#5e5ce6" stroke-width="8"/>
+      </g>
+      <!-- Clock face inside screen -->
+      <circle cx="100" cy="94" r="30" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/>
+      <circle cx="100" cy="94" r="2.5" fill="#5e5ce6"/>
+      <!-- Hour hand -->
+      <line x1="100" y1="94" x2="100" y2="75" stroke="white" stroke-width="2.5" stroke-linecap="round" opacity="0.9"/>
+      <!-- Minute hand -->
+      <line x1="100" y1="94" x2="116" y2="98" stroke="#5e5ce6" stroke-width="2" stroke-linecap="round"/>
+      <!-- Tick marks -->
+      <line x1="100" y1="65" x2="100" y2="69" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="100" y1="119" x2="100" y2="123" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="71" y1="94" x2="75" y2="94" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="125" y1="94" x2="129" y2="94" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-linecap="round"/>
+      <defs>
+        <linearGradient id="screenGrad" x1="48" y1="32" x2="152" y2="128" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#4a4870"/>
+          <stop offset="100%" stop-color="#2d2d45"/>
+        </linearGradient>
+      </defs>
+    </svg>
+    <div class="splash-title">Set Time Calculator</div>
+  </div>
+  <p class="splash-credit">Created by: Kristian Wood</p>
+  <button class="splash-btn" onclick="showRolePicker()">Get Started</button>
+</div>
+
+<!-- SCREEN 2: Role Picker -->
+<div id="rolepicker" class="screen">
+  <div class="rp-inner">
+    <button class="back-btn" onclick="showScreen('splash')">
+      <svg viewBox="0 0 10 16" fill="none"><path d="M8.5 1L1.5 8L8.5 15" stroke="#5e5ce6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Back
+    </button>
+    <div class="rp-title">Select your role</div>
+    <div class="rp-sub">ACCP recommended rates — July 2025 to June 2026</div>
+    <div class="role-group">
+      <div class="role-group-label">Camera</div>
+      <div class="role-list">
+        <div class="role-item" onclick="selectRole('Assistant Camera',71.16,10)"><span class="ri-name">Assistant Camera</span><span class="ri-right"><span class="ri-rate">$71.16/hr</span><span class="ri-chevron">›</span></span></div>
+        <div class="role-item" onclick="selectRole('2nd Assistant Camera',55.88,10)"><span class="ri-name">2nd Assistant Camera</span><span class="ri-right"><span class="ri-rate">$55.88/hr</span><span class="ri-chevron">›</span></span></div>
+        <div class="role-item" onclick="selectRole('DIT',71.16,10)"><span class="ri-name">DIT</span><span class="ri-right"><span class="ri-rate">$71.16/hr</span><span class="ri-chevron">›</span></span></div>
+        <div class="role-item" onclick="selectRole('VTR',62.69,10)"><span class="ri-name">VTR</span><span class="ri-right"><span class="ri-rate">$62.69/hr</span><span class="ri-chevron">›</span></span></div>
+      </div>
+    </div>
+    <div class="role-group">
+      <div class="role-group-label">G&amp;E / Lighting</div>
+      <div class="role-list">
+        <div class="role-item" onclick="selectRole('Keys',62.69,10)"><span class="ri-name">Keys</span><span class="ri-right"><span class="ri-rate">$62.69/hr</span><span class="ri-chevron">›</span></span></div>
+        <div class="role-item" onclick="selectRole('2nds',55.88,10)"><span class="ri-name">2nds</span><span class="ri-right"><span class="ri-rate">$55.88/hr</span><span class="ri-chevron">›</span></span></div>
+        <div class="role-item" onclick="selectRole('3rds',52.47,10)"><span class="ri-name">3rds</span><span class="ri-right"><span class="ri-rate">$52.47/hr</span><span class="ri-chevron">›</span></span></div>
+      </div>
+    </div>
+    <div class="role-group">
+      <div class="role-group-label">Sound</div>
+      <div class="role-list">
+        <div class="role-item" onclick="selectRole('Sound Recordist',71.16,10)"><span class="ri-name">Sound Recordist</span><span class="ri-right"><span class="ri-rate">$71.16/hr</span><span class="ri-chevron">›</span></span></div>
+        <div class="role-item" onclick="selectRole('Boom Operator',55.88,10)"><span class="ri-name">Boom Operator</span><span class="ri-right"><span class="ri-rate">$55.88/hr</span><span class="ri-chevron">›</span></span></div>
+      </div>
+    </div>
+    <div class="role-group">
+      <div class="role-group-label">Styling &amp; Make Up</div>
+      <div class="role-list">
+        <div class="role-item" onclick="selectRole('Assistant Stylist',55.88,10)"><span class="ri-name">Assistant Stylist</span><span class="ri-right"><span class="ri-rate">$55.88/hr</span><span class="ri-chevron">›</span></span></div>
+        <div class="role-item" onclick="selectRole('Assistant Make Up',55.88,10)"><span class="ri-name">Assistant Make Up</span><span class="ri-right"><span class="ri-rate">$55.88/hr</span><span class="ri-chevron">›</span></span></div>
+      </div>
+    </div>
+    <div class="role-group">
+      <div class="role-group-label">Transport &amp; Craft</div>
+      <div class="role-list">
+        <div class="role-item" onclick="selectRole('Motorhome Driver',33.22,12)"><span class="ri-name">Motorhome Driver</span><span class="ri-right"><span class="ri-rate">$33.22/hr</span><span class="ri-chevron">›</span></span></div>
+        <div class="role-item" onclick="selectRole('Craft Service',36.11,12)"><span class="ri-name">Craft Service</span><span class="ri-right"><span class="ri-rate">$36.11/hr</span><span class="ri-chevron">›</span></span></div>
+        <div class="role-item" onclick="selectRole('Assistant Craft Service',28.94,12)"><span class="ri-name">Assistant Craft Service</span><span class="ri-right"><span class="ri-rate">$28.94/hr</span><span class="ri-chevron">›</span></span></div>
+      </div>
+    </div>
+    <div class="role-group">
+      <div class="role-group-label">Production / Art / Locations <span class="rg-badge">flat day rate</span></div>
+      <div class="role-sub">Daily rate + $25/hr after 14h</div>
+      <div class="role-list">
+        <div class="role-item" onclick="selectRole('Assistant Director',1387,14,'flat')"><span class="ri-name">Assistant Director</span><span class="ri-right"><span class="ri-rate ri-rate-flat">$1,387/day</span><span class="ri-chevron">›</span></span></div>
+        <div class="role-item" onclick="selectRole('2nd Assistant Director',463,14,'flat')"><span class="ri-name">2nd Assistant Director</span><span class="ri-right"><span class="ri-rate ri-rate-flat">$463/day</span><span class="ri-chevron">›</span></span></div>
+        <div class="role-item" onclick="selectRole('Production Manager',751,14,'flat')"><span class="ri-name">Production Manager</span><span class="ri-right"><span class="ri-rate ri-rate-flat">$751/day</span><span class="ri-chevron">›</span></span></div>
+        <div class="role-item" onclick="selectRole('Production Coordinator',463,14,'flat')"><span class="ri-name">Production Coordinator</span><span class="ri-right"><span class="ri-rate ri-rate-flat">$463/day</span><span class="ri-chevron">›</span></span></div>
+        <div class="role-item" onclick="selectRole('Talent Coordinator',404,14,'flat')"><span class="ri-name">Talent Coordinator</span><span class="ri-right"><span class="ri-rate ri-rate-flat">$404/day</span><span class="ri-chevron">›</span></span></div>
+        <div class="role-item" onclick="selectRole('Production Assistant',289,14,'flat')"><span class="ri-name">Production Assistant</span><span class="ri-right"><span class="ri-rate ri-rate-flat">$289/day</span><span class="ri-chevron">›</span></span></div>
+        <div class="role-item" onclick="selectRole('Production Designer',1271,14,'flat')"><span class="ri-name">Production Designer</span><span class="ri-right"><span class="ri-rate ri-rate-flat">$1,271/day</span><span class="ri-chevron">›</span></span></div>
+        <div class="role-item" onclick="selectRole('Art Director',867,14,'flat')"><span class="ri-name">Art Director</span><span class="ri-right"><span class="ri-rate ri-rate-flat">$867/day</span><span class="ri-chevron">›</span></span></div>
+        <div class="role-item" onclick="selectRole('Prop Buyer',751,14,'flat')"><span class="ri-name">Prop Buyer</span><span class="ri-right"><span class="ri-rate ri-rate-flat">$751/day</span><span class="ri-chevron">›</span></span></div>
+        <div class="role-item" onclick="selectRole('Assistant Buyer',520,14,'flat')"><span class="ri-name">Assistant Buyer</span><span class="ri-right"><span class="ri-rate ri-rate-flat">$520/day</span><span class="ri-chevron">›</span></span></div>
+        <div class="role-item" onclick="selectRole('Lead Dresser',404,14,'flat')"><span class="ri-name">Lead Dresser</span><span class="ri-right"><span class="ri-rate ri-rate-flat">$404/day</span><span class="ri-chevron">›</span></span></div>
+        <div class="role-item" onclick="selectRole('Set Dresser',375,14,'flat')"><span class="ri-name">Set Dresser</span><span class="ri-right"><span class="ri-rate ri-rate-flat">$375/day</span><span class="ri-chevron">›</span></span></div>
+        <div class="role-item" onclick="selectRole('Art Assistant',289,14,'flat')"><span class="ri-name">Art Assistant</span><span class="ri-right"><span class="ri-rate ri-rate-flat">$289/day</span><span class="ri-chevron">›</span></span></div>
+        <div class="role-item" onclick="selectRole('Location Scout / Manager',751,14,'flat')"><span class="ri-name">Location Scout / Manager</span><span class="ri-right"><span class="ri-rate ri-rate-flat">$751/day</span><span class="ri-chevron">›</span></span></div>
+        <div class="role-item" onclick="selectRole('Assistant Locations',463,14,'flat')"><span class="ri-name">Assistant Locations</span><span class="ri-right"><span class="ri-rate ri-rate-flat">$463/day</span><span class="ri-chevron">›</span></span></div>
+      </div>
+    </div>
+
+    <div class="role-group">
+      <div class="role-group-label">My role isn't listed</div>
+      <div class="custom-role-card">
+        <div class="custom-role-title">Enter your role &amp; rate</div>
+        <div class="custom-fields">
+          <div class="field" style="grid-column:1/-1"><label>Role / position title</label><input type="text" id="customRole" placeholder="e.g. Gaffer, DP, Focus Puller"></div>
+          <div class="field"><label>Hourly rate ($)</label><input type="number" id="customRate" placeholder="0.00" min="0" step="0.01"></div>
+          <div class="field"><label>Min daily hours</label><input type="number" id="customMinHrs" placeholder="10" min="1" step="1" value="10"></div>
+        </div>
+        <div class="custom-note">OT calculated on ACCP scale: 1.5× hrs 1–2, 2× hrs 3–4, 3× hr 5+</div>
+        <button class="bubble-btn" onclick="submitCustomRole()">Use this rate</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 3: Calculator -->
+<div id="calculator" class="screen">
+  <div class="calc-inner">
+    <div class="calc-header">
+      <div class="calc-header-top">
+        <h1>Set billing</h1>
+        <div class="role-chip" onclick="showRolePicker()" title="Change role">
+          <div class="role-chip-dot"></div>
+          <span class="role-chip-name" id="chipName">Role</span>
+          <span class="role-chip-rate" id="chipRate">$0/hr</span>
+        </div>
+      </div>
+      <p>Film / TV — billable hours, overtime &amp; meal penalties</p>
+    </div>
+    <div class="section">
+      <div class="section-label">Times</div>
+      <div class="glass-card">
+        <div class="row2">
+          <div class="field">
+            <label style="color:var(--text3)">Your call <span style="font-weight:400;font-size:11px">(optional)</span></label>
+            <input type="time" id="yourCall" value="07:30" disabled style="opacity:0.4;pointer-events:none">
+            <div class="sep-call-row">
+              <label class="sep-call-label">
+                <input type="checkbox" id="sepCallToggle" onchange="toggleSepCall(this)">
+                <span>Separate call time</span>
+              </label>
+            </div>
+          </div>
+          <div class="field"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Crew call</label><input type="time" id="crewCall" value="07:30"></div>
+          <div class="field"><label>Your wrap</label><input type="time" id="yourWrap" value="18:30"><div class="field-note">Drives your billable hours &amp; OT</div></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Lunch out</label><input type="time" id="lunchOut" value="13:30"></div>
+          <div class="field"><label>Lunch in</label><input type="time" id="lunchIn" value="14:30"></div>
+        </div>
+        <div class="glass-divider"></div>
+        <div class="row2" style="margin-bottom:0">
+          <div class="field"><label>Camera wrap</label><input type="time" id="camWrap" value="18:30"><div class="field-note">Meal penalty check only</div></div>
+          <div class="field"></div>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-label">Rate</div>
+      <div class="glass-card">
+        <div class="row2" style="margin-bottom:16px">
+          <div class="field"><label>Hourly rate ($)</label><input type="number" id="rate" value="50" min="0" step="0.01"></div>
+          <div class="field"><label>Meal penalty rate ($/hr)</label><input type="number" id="mpRate" value="50" min="0" step="0.01"></div>
+        </div>
+        <div class="toggle-row">
+          <div class="tgl-text"><div class="tl">Meal penalties</div><div class="ts">Late lunch · Cam wrap past 6h after lunch</div></div>
+          <label class="toggle"><input type="checkbox" id="mpToggle" checked><span class="track"></span></label>
+        </div>
+      </div>
+    </div>
+    <button class="calc-btn" onclick="calculate()">Calculate</button>
+    <div class="results" id="results">
+      <div class="res-title" id="resTitle">Breakdown</div>
+      <div id="alerts"></div>
+      <div class="metrics" id="metrics"></div>
+      <div class="structure-row" id="structureRow"></div>
+      <div class="cam-row" id="camRow"></div>
+      <div class="tl-wrap"><div class="tl-bar" id="tlBar"></div><div class="tl-legend" id="tlLegend"></div></div>
+      <div class="bd-table" id="bdTable"></div>
+      <div class="total-bar"><span class="total-label">Total due</span><span class="total-val" id="totalDue">$0.00</span></div>
+      <button class="copy-btn" id="copyBtn" onclick="copyBreakdown()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+          <rect x="5" y="5" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M3 11H2.5A1.5 1.5 0 0 1 1 9.5v-7A1.5 1.5 0 0 1 2.5 1h7A1.5 1.5 0 0 1 11 2.5V3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span id="copyLabel">Copy breakdown for invoice</span>
+      </button>
+      <button class="invoice-btn" onclick="showInvoice()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+          <rect x="2" y="1" width="10" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="5" y1="5" x2="9" y2="5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="5" y1="8" x2="9" y2="8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="5" y1="11" x2="7" y2="11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="13" cy="13" r="3" fill="var(--accent)"/>
+          <line x1="13" y1="11.5" x2="13" y2="14.5" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="11.5" y1="13" x2="14.5" y2="13" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+        Need an Invoice?
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 4: Invoice Generator -->
+<div id="invoice" class="screen">
+  <div class="rp-inner">
+    <button class="back-btn" onclick="showScreen('calculator')">
+      <svg viewBox="0 0 10 16" fill="none"><path d="M8.5 1L1.5 8L8.5 15" stroke="#5e5ce6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Back
+    </button>
+    <div class="rp-title">Invoice Generator</div>
+    <div class="rp-sub">Fill in your details — billing data pre-filled from your calculation</div>
+
+    <div class="inv-section">
+      <div class="inv-section-label">Your Details</div>
+      <div class="inv-grid">
+        <div class="field inv-full"><label>Your name</label><input type="text" id="invName" placeholder="e.g. Kristian Wood"></div>
+        <div class="field inv-full"><label>Company / trading name <span class="inv-opt">optional</span></label><input type="text" id="invCompany" placeholder="e.g. Greyed Out Inc."></div>
+        <div class="field inv-full"><label>Your address</label><input type="text" id="invAddress" placeholder="e.g. 123 Main St, Toronto, ON M5V 1A1"></div>
+        <div class="field"><label>Email</label><input type="email" id="invEmail" placeholder="you@email.com"></div>
+        <div class="field"><label>Phone <span class="inv-opt">optional</span></label><input type="tel" id="invPhone" placeholder="(416) 555-0100"></div>
+        <div class="field"><label>HST / GST number <span class="inv-opt">optional</span></label><input type="text" id="invTax" placeholder="e.g. 123456789 RT0001"></div>
+      </div>
+    </div>
+
+    <div class="inv-section">
+      <div class="inv-section-label">Invoice Details</div>
+      <div class="inv-grid">
+        <div class="field"><label>Invoice number</label><input type="text" id="invNumber" placeholder="e.g. INV-001"></div>
+        <div class="field"><label>Invoice date</label><input type="date" id="invDate"></div>
+        <div class="field"><label>Due date <span class="inv-opt">optional</span></label><input type="date" id="invDue"></div>
+        <div class="field"><label>Payment terms <span class="inv-opt">optional</span></label><input type="text" id="invTerms" placeholder="e.g. Net 30"></div>
+      </div>
+    </div>
+
+    <div class="inv-section">
+      <div class="inv-section-label">Production Details</div>
+      <div class="inv-grid">
+        <div class="field inv-full"><label>Client / production company</label><input type="text" id="invClient" placeholder="e.g. Acme Productions Inc."></div>
+        <div class="field inv-full"><label>Client address <span class="inv-opt">optional</span></label><input type="text" id="invClientAddr" placeholder="e.g. 456 King St W, Toronto, ON"></div>
+        <div class="field inv-full"><label>Production / project name</label><input type="text" id="invProduction" placeholder="e.g. Coca-Cola TVC — Summer 2025"></div>
+        <div class="field"><label>Shoot date</label><input type="date" id="invShootDate"></div>
+        <div class="field"><label>PO number <span class="inv-opt">optional</span></label><input type="text" id="invPO" placeholder="e.g. PO-2025-0042"></div>
+      </div>
+    </div>
+
+    <div class="inv-section">
+      <div class="inv-section-label">Billing Summary <span class="inv-prefilled">pre-filled from calculation</span></div>
+      <div id="invBillingSummary" class="inv-billing-preview"></div>
+      <div class="inv-grid" style="margin-top:12px">
+        <div class="field inv-full"><label>Additional notes <span class="inv-opt">optional</span></label><textarea id="invNotes" placeholder="e.g. E-transfer to you@email.com — Thank you!" rows="3" style="resize:vertical;font-family:inherit;font-size:15px;padding:12px;border-radius:12px;border:1.5px solid var(--glass-border);background:var(--glass-input);width:100%;box-sizing:border-box;color:var(--text)"></textarea></div>
+      </div>
+    </div>
+
+    <div class="inv-actions">
+      <button class="inv-export-btn inv-pdf" onclick="exportInvoicePDF()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="1" width="10" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><line x1="5" y1="5" x2="9" y2="5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="5" y1="8" x2="9" y2="8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="5" y1="11" x2="7" y2="11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Export as PDF
+      </button>
+
+    </div>
+  </div>
+</div>
+
+
+<script>
+var currentRole={name:'',rate:50,minHrs:10};
+var lastCalc=null;
+function toggleSepCall(cb){
+  var inp=document.getElementById('yourCall');
+  inp.disabled=!cb.checked;
+  inp.style.opacity=cb.checked?'1':'0.4';
+  inp.style.pointerEvents=cb.checked?'auto':'none';
+}
+function showScreen(id){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+function showRolePicker(){document.getElementById('results').classList.remove('show');showScreen('rolepicker');}
+function selectRole(name,rate,minHrs,type){currentRole={name:name,rate:rate,minHrs:minHrs,type:type||'hourly'};applyRoleToCalc();showScreen('calculator');}
+function submitCustomRole(){
+  var name=document.getElementById('customRole').value.trim();
+  var rate=parseFloat(document.getElementById('customRate').value);
+  var minHrs=parseInt(document.getElementById('customMinHrs').value)||10;
+  if(!name){document.getElementById('customRole').focus();return;}
+  if(!rate||rate<=0){document.getElementById('customRate').focus();return;}
+  currentRole={name:name,rate:rate,minHrs:minHrs,type:'hourly'};
+  applyRoleToCalc();showScreen('calculator');
+}
+function applyRoleToCalc(){
+  document.getElementById('chipName').textContent=currentRole.name;
+  if(currentRole.type==='flat'){
+    document.getElementById('chipRate').textContent='$'+currentRole.rate.toFixed(0)+'/day';
+    document.getElementById('rate').value=currentRole.rate.toFixed(2);
+    document.getElementById('mpRate').value='25.00';
+  } else {
+    document.getElementById('chipRate').textContent='$'+currentRole.rate.toFixed(2)+'/hr';
+    document.getElementById('rate').value=currentRole.rate.toFixed(2);
+    document.getElementById('mpRate').value=currentRole.rate.toFixed(2);
+  }
+}
+function toM(t){var p=t.split(':').map(Number);return p[0]*60+p[1];}
+function adjAfter(t,ref){while(t<=ref)t+=1440;return t;}
+function adjSameOrAfter(t,ref){while(t<ref)t+=1440;return t;}
+function fmtT(m){var n=((m%1440)+1440)%1440;return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');}
+function fmtH(h){if(h<=0)return'0h';var wh=Math.floor(h),wm=Math.round((h-wh)*60);if(wm===0)return wh+'h';if(wh===0)return wm+'m';return wh+'h '+wm+'m';}
+function calculate(){
+  var crewCall=toM(document.getElementById('crewCall').value);
+  var sepCall=document.getElementById('sepCallToggle').checked;
+  var call=sepCall?toM(document.getElementById('yourCall').value):crewCall;
+  var yourWrap=adjAfter(toM(document.getElementById('yourWrap').value),call);
+  var lOut=adjSameOrAfter(toM(document.getElementById('lunchOut').value),call);
+  var lIn=adjAfter(toM(document.getElementById('lunchIn').value),lOut-1);
+  var camWrap=adjSameOrAfter(toM(document.getElementById('camWrap').value),call);
+  var rate=parseFloat(document.getElementById('rate').value)||0;
+  var mpRate=parseFloat(document.getElementById('mpRate').value)||rate;
+  var mpOn=document.getElementById('mpToggle').checked;
+  var overnight=yourWrap>=1440;
+  var DAY_MIN=currentRole.minHrs||10;
+  var lunchH=(lIn-lOut)/60,morningH=(lOut-call)/60,afternoonH=(yourWrap-lIn)/60,workedH=morningH+afternoonH;
+  var MORNING_MIN=6,AFTERNOON_MIN=DAY_MIN-6;
+  // Billable morning: always at least 6h
+  var billMorning=Math.max(MORNING_MIN,morningH);
+  // Billable afternoon: at least 4h guarantee, BUT capped at actual afternoon
+  // hours unless actual worked hours exceed DAY_MIN (i.e. there is real OT)
+  var otH=Math.max(0,workedH-DAY_MIN);
+  var billAfternoon=otH>0
+    ? Math.max(AFTERNOON_MIN,afternoonH)           // worked OT: show actual afternoon
+    : Math.max(AFTERNOON_MIN,Math.min(afternoonH,DAY_MIN-billMorning)); // flat day: cap to fill exactly to DAY_MIN
+  var billWorked=Math.max(DAY_MIN,workedH);
+  var ot1=Math.min(otH,2),ot2=Math.min(Math.max(otH-2,0),2),ot3=Math.max(otH-4,0);
+  var alerts=[],mpPay=0,mpLateLunchPay=0,mpCamWrapPay=0;
+  var ld=call+360;
+  if(mpOn){
+    // Late lunch penalty: 2x first overage hour, 3x after that
+    if(lOut>ld){
+      var lh=(lOut-ld)/60;
+      var ll1=Math.min(lh,1),ll2=Math.max(lh-1,0);
+      mpLateLunchPay=ll1*mpRate*2+ll2*mpRate*3;
+      var msgParts=[];
+      if(ll1>0)msgParts.push(fmtH(ll1)+' \xd7 2\xd7');
+      if(ll2>0)msgParts.push(fmtH(ll2)+' \xd7 3\xd7');
+      alerts.push({msg:'Late lunch: '+fmtH(lh)+' past 6h mark ('+fmtT(ld)+'). Penalty: '+msgParts.join(' + ')+'.',type:'lunch'});
+      mpPay+=mpLateLunchPay;
+    }
+    // Camera wrap penalty: 2x for time past 6h after lunch in
+    var wd=lIn+360;
+    if(camWrap>wd){
+      var wh2=(camWrap-wd)/60;
+      mpCamWrapPay=wh2*mpRate*2;
+      alerts.push({msg:'Camera wrap penalty: cam wrapped '+fmtH(wh2)+' past 6h after lunch ('+fmtT(wd)+'). 2\xd7 penalty applies.',type:'camwrap'});
+      mpPay+=mpCamWrapPay;
+    }
+  }
+  var isFlat=currentRole.type==='flat';
+  var FLAT_OT_THRESHOLD=14; // flat rate OT kicks in after 14h
+  var FLAT_OT_RATE=25;      // $25/hr after 14h
+  var flatOtH=isFlat?Math.max(0,workedH-FLAT_OT_THRESHOLD):0;
+  var sp=isFlat?rate:DAY_MIN*rate;
+  var o1p=isFlat?0:ot1*rate*1.5,o2p=isFlat?0:ot2*rate*2,o3p=isFlat?0:ot3*rate*3;
+  var flatOtPay=isFlat?flatOtH*FLAT_OT_RATE:0;
+  var total=sp+o1p+o2p+o3p+flatOtPay+mpPay;
+  document.getElementById('resTitle').innerHTML='Breakdown'+(overnight?'<span class="on-badge">overnight</span>':'');
+  var ae=document.getElementById('alerts');ae.innerHTML='';
+  if(mpOn&&!alerts.length)ae.innerHTML='<div class="alert alert-ok"><div class="alert-dot dot-ok"></div><div class="alert-msg">No meal penalties \u2014 all good.</div></div>';
+  alerts.forEach(function(a){ae.innerHTML+='<div class="alert alert-warn"><div class="alert-dot dot-warn"></div><div class="alert-msg">'+a.msg+'</div></div>';});
+  var rateLabel=isFlat?'$'+rate.toFixed(0)+'/day':'$'+rate.toFixed(2)+'/hr';
+  var billableSub=isFlat?(flatOtH>0?fmtH(flatOtH)+' OT @$'+FLAT_OT_RATE+'/hr':'Flat day rate'):(otH>0?fmtH(otH)+' OT':'Flat day');
+  document.getElementById('metrics').innerHTML='<div class="metric"><div class="m-label">Worked</div><div class="m-val">'+fmtH(workedH)+'</div><div class="m-sub">'+fmtT(call)+'–'+fmtT(yourWrap)+(overnight?' +1':'')+' </div></div><div class="metric"><div class="m-label">'+(isFlat?'Day rate':'Billable')+'</div><div class="m-val">'+(isFlat?'$'+rate.toFixed(0):fmtH(billWorked))+'</div><div class="m-sub">'+billableSub+'</div></div><div class="metric"><div class="m-label">Total pay</div><div class="m-val">$'+total.toFixed(0)+'</div><div class="m-sub">'+rateLabel+'</div></div>';
+  document.getElementById('structureRow').innerHTML='<div class="str-seg"><div class="str-label">Morning</div><div class="str-val">'+fmtH(billMorning)+'</div><div class="str-sub">'+(billMorning>morningH?'6h min':'actual')+'</div></div><div class="str-seg"><div class="str-label">Lunch</div><div class="str-val-muted">'+fmtH(lunchH)+'</div><div class="str-sub">unpaid</div></div><div class="str-seg"><div class="str-label">Afternoon</div><div class="str-val">'+fmtH(billAfternoon)+'</div><div class="str-sub">'+(billAfternoon>afternoonH?AFTERNOON_MIN+'h min':'actual')+'</div></div><div class="str-seg"><div class="str-label">Overtime</div><div class="'+(otH===0?'str-val-muted':'str-val')+'">'+(otH>0?fmtH(otH):'\u2014')+'</div><div class="str-sub">'+(otH>0?'after '+DAY_MIN+'H':'none')+'</div></div>';
+  var diff=yourWrap-camWrap,dn='Same as your wrap';
+  if(diff>0)dn='You wrapped '+fmtH(diff/60)+' after cam';
+  if(diff<0)dn='Cam wrapped '+fmtH(Math.abs(diff)/60)+' after you';
+  document.getElementById('camRow').innerHTML='<div class="cam-card"><div class="cam-label">Camera wrap</div><div class="cam-time">'+fmtT(camWrap)+'</div><div class="cam-note">Meal penalty trigger</div></div><div class="cam-card"><div class="cam-label">Your wrap</div><div class="cam-time">'+fmtT(yourWrap)+(overnight?' <span style="font-size:13px;color:var(--text3)">(+1)</span>':'')+'</div><div class="cam-note">'+dn+'</div></div>';
+  var ts=yourWrap-call;
+  var segs=[{l:'Morning',m:lOut-call,c:'#5e5ce6'},{l:'Lunch',m:lIn-lOut,c:'rgba(0,0,0,0.10)'},{l:'Afternoon',m:Math.min(yourWrap-lIn,AFTERNOON_MIN*60),c:'#34c759'}];
+  if(ot1>0)segs.push({l:'OT 1.5\xd7',m:ot1*60,c:'#ff9500'});
+  if(ot2>0)segs.push({l:'OT 2\xd7',m:ot2*60,c:'#ff6b00'});
+  if(ot3>0)segs.push({l:'OT 3\xd7',m:ot3*60,c:'#ff3b30'});
+  document.getElementById('tlBar').innerHTML=segs.map(function(s){return'<div class="tl-seg" style="width:'+Math.max(0,(s.m/ts)*100).toFixed(1)+'%;background:'+s.c+'"></div>';}).join('');
+  document.getElementById('tlLegend').innerHTML=segs.filter(function(s){return s.m>0;}).map(function(s){return'<div class="tl-item"><div class="tl-dot" style="background:'+s.c+'"></div>'+s.l+' ('+fmtH(s.m/60)+')</div>';}).join('');
+  // Invoice-equivalent billable hours
+  var invoiceHrs = isFlat ? workedH : (DAY_MIN + ot1*1.5 + ot2*2 + ot3*3);
+  var invoiceHrsLabel = isFlat ? (flatOtH>0 ? fmtH(workedH)+' worked + $'+FLAT_OT_RATE+'/hr OT' : fmtH(workedH)+' worked') : fmtH(invoiceHrs)+' weighted';
+  var rows='<div class="bd-row bd-head"><span class="bd-name" style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Period</span><span class="bd-detail" style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Calculation</span><span class="bd-amt" style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Amount</span></div>';
+  rows+='<div class="bd-row" style="background:var(--accent-dim);border-radius:10px;margin-bottom:4px"><span class="bd-name" style="font-weight:700;color:var(--accent)">'+(isFlat?'Day rate':'Billable hours')+'</span><span class="bd-detail" style="color:var(--accent)">'+invoiceHrsLabel+'</span><span class="bd-amt" style="font-weight:700;color:var(--accent)">'+(isFlat?'$'+rate.toFixed(0):fmtH(invoiceHrs))+'</span></div>';
+  if(isFlat){
+    rows+='<div class="bd-row"><span class="bd-name">Flat day rate <span class="badge b-accent">incl. 14h</span></span><span class="bd-detail">1 day</span><span class="bd-amt">$'+rate.toFixed(2)+'</span></div>';
+    rows+='<div class="bd-row"><span class="bd-name bd-muted">Lunch <span class="badge b-unpaid">unpaid</span></span><span class="bd-detail bd-muted">'+fmtH(lunchH)+' — not billed</span><span class="bd-amt bd-muted">—</span></div>';
+    if(flatOtH>0)rows+='<div class="bd-row"><span class="bd-name" style="color:#a65800">OT after 14h <span class="badge b-warn">$'+FLAT_OT_RATE+'/hr</span></span><span class="bd-detail" style="color:#a65800">'+fmtH(flatOtH)+' × $'+FLAT_OT_RATE+'.00</span><span class="bd-amt" style="color:#a65800">$'+flatOtPay.toFixed(2)+'</span></div>';
+  } else {
+    rows+='<div class="bd-row"><span class="bd-name">Morning <span class="badge b-accent">1×</span>'+(billMorning>morningH?'<span class="badge b-gray">6h min</span>':'')+' </span><span class="bd-detail">'+fmtH(billMorning)+' × $'+rate.toFixed(2)+'</span><span class="bd-amt">$'+(billMorning*rate).toFixed(2)+'</span></div>';
+    rows+='<div class="bd-row"><span class="bd-name bd-muted">Lunch <span class="badge b-unpaid">unpaid</span></span><span class="bd-detail bd-muted">'+fmtH(lunchH)+' — not billed</span><span class="bd-amt bd-muted">—</span></div>';
+    rows+='<div class="bd-row"><span class="bd-name">Afternoon <span class="badge b-green">1×</span>'+(billAfternoon>afternoonH?'<span class="badge b-gray">'+AFTERNOON_MIN+'h min</span>':'')+' </span><span class="bd-detail">'+fmtH(billAfternoon)+' × $'+rate.toFixed(2)+'</span><span class="bd-amt">$'+(billAfternoon*rate).toFixed(2)+'</span></div>';
+    if(ot1>0)rows+='<div class="bd-row"><span class="bd-name">OT hrs 1–2 <span class="badge b-amber">1.5×</span></span><span class="bd-detail">'+fmtH(ot1)+' × $'+(rate*1.5).toFixed(2)+'</span><span class="bd-amt">$'+o1p.toFixed(2)+'</span></div>';
+    if(ot2>0)rows+='<div class="bd-row"><span class="bd-name">OT hrs 3–4 <span class="badge b-orange">2×</span></span><span class="bd-detail">'+fmtH(ot2)+' × $'+(rate*2).toFixed(2)+'</span><span class="bd-amt">$'+o2p.toFixed(2)+'</span></div>';
+    if(ot3>0)rows+='<div class="bd-row"><span class="bd-name">OT hr 5+ <span class="badge b-red">3×</span></span><span class="bd-detail">'+fmtH(ot3)+' × $'+(rate*3).toFixed(2)+'</span><span class="bd-amt">$'+o3p.toFixed(2)+'</span></div>';
+  }
+  if(mpLateLunchPay>0){
+    var ll1b=Math.min((lOut-ld)/60,1),ll2b=Math.max((lOut-ld)/60-1,0);
+    if(ll1b>0)rows+='<div class="bd-row"><span class="bd-name" style="color:#a65800">Late lunch (1st hr) <span class="badge b-warn">2\xd7</span></span><span class="bd-detail" style="color:#a65800">'+fmtH(ll1b)+' \xd7 $'+(mpRate*2).toFixed(2)+'</span><span class="bd-amt" style="color:#a65800">$'+(ll1b*mpRate*2).toFixed(2)+'</span></div>';
+    if(ll2b>0)rows+='<div class="bd-row"><span class="bd-name" style="color:#a65800">Late lunch (2hr+) <span class="badge b-red">3\xd7</span></span><span class="bd-detail" style="color:#a65800">'+fmtH(ll2b)+' \xd7 $'+(mpRate*3).toFixed(2)+'</span><span class="bd-amt" style="color:#a65800">$'+(ll2b*mpRate*3).toFixed(2)+'</span></div>';
+  }
+  if(mpCamWrapPay>0)rows+='<div class="bd-row"><span class="bd-name" style="color:#a65800">Cam wrap penalty <span class="badge b-warn">2\xd7</span></span><span class="bd-detail" style="color:#a65800">Overage \xd7 $'+(mpRate*2).toFixed(2)+'/hr</span><span class="bd-amt" style="color:#a65800">$'+mpCamWrapPay.toFixed(2)+'</span></div>';
+  document.getElementById('bdTable').innerHTML=rows;
+  document.getElementById('totalDue').textContent='$'+total.toFixed(2);
+  lastCalc={role:currentRole.name,call:call,yourWrap:yourWrap,lOut:lOut,lIn:lIn,camWrap:camWrap,
+    rate:rate,mpRate:mpRate,lunchH:lunchH,morningH:morningH,afternoonH:afternoonH,workedH:workedH,
+    billMorning:billMorning,billAfternoon:billAfternoon,billWorked:billWorked,
+    otH:otH,ot1:ot1,ot2:ot2,ot3:ot3,o1p:o1p,o2p:o2p,o3p:o3p,
+    mpPay:mpPay,mpLateLunchPay:mpLateLunchPay,mpCamWrapPay:mpCamWrapPay,ld:ld,
+    isFlat:isFlat,flatOtH:flatOtH,flatOtPay:flatOtPay,
+    total:total,overnight:overnight,DAY_MIN:DAY_MIN,alerts:alerts};
+  document.getElementById('results').classList.add('show');
+  document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function pad(str,w){str=String(str);while(str.length<w)str+=' ';return str;}
+function rpad(str,w){str=String(str);while(str.length<w)str=' '+str;return str;}
+
+function buildInvoiceText(){
+  var c=lastCalc;
+  if(!c)return'';
+  var lines=[];
+  var date=new Date().toLocaleDateString('en-CA');
+  lines.push('BILLING BREAKDOWN \u2014 '+date);
+  if(c.role)lines.push('Role: '+c.role+(c.isFlat?' (flat day rate)':' (hourly)'));
+  lines.push('Call: '+fmtT(c.call)+'  Wrap: '+fmtT(c.yourWrap)+(c.overnight?' (+1)':''));
+  lines.push('Lunch: '+fmtT(c.lOut)+' \u2013 '+fmtT(c.lIn)+' (unpaid)');
+  lines.push('');
+  lines.push('\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');
+  var cIsFlat=c.isFlat;
+  var cInvoiceHrs=cIsFlat?c.workedH:(c.DAY_MIN+c.ot1*1.5+c.ot2*2+c.ot3*3);
+  lines.push(pad(cIsFlat?'DAY RATE (invoice):':'BILLABLE HOURS (invoice):',22)+pad(cIsFlat?('$'+c.rate.toFixed(0)+' flat'):fmtH(cInvoiceHrs),10));
+  lines.push('\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');
+  lines.push(pad('Period',22)+pad('Hours',10)+rpad('Rate',12)+rpad('Amount',10));
+  lines.push('\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');
+  if(cIsFlat){
+    lines.push(pad('Flat day rate (incl.14h)',22)+pad('1 day',10)+rpad('',12)+rpad('$'+c.rate.toFixed(2),10));
+    lines.push(pad('Lunch (unpaid)',22)+pad(fmtH(c.lunchH),10)+rpad('\u2014',12)+rpad('\u2014',10));
+    if(c.flatOtH>0)lines.push(pad('OT after 14h ($25/hr)',22)+pad(fmtH(c.flatOtH),10)+rpad('$25.00/hr',12)+rpad('$'+c.flatOtPay.toFixed(2),10));
+  } else {
+    lines.push(pad('Morning (1\xd7)',22)+pad(fmtH(c.billMorning),10)+rpad('$'+c.rate.toFixed(2)+'/hr',12)+rpad('$'+(c.billMorning*c.rate).toFixed(2),10));
+    lines.push(pad('Lunch (unpaid)',22)+pad(fmtH(c.lunchH),10)+rpad('\u2014',12)+rpad('\u2014',10));
+    lines.push(pad('Afternoon (1\xd7)',22)+pad(fmtH(c.billAfternoon),10)+rpad('$'+c.rate.toFixed(2)+'/hr',12)+rpad('$'+(c.billAfternoon*c.rate).toFixed(2),10));
+    if(c.ot1>0)lines.push(pad('OT hrs 1\u20132 (1.5\xd7)',22)+pad(fmtH(c.ot1),10)+rpad('$'+(c.rate*1.5).toFixed(2)+'/hr',12)+rpad('$'+c.o1p.toFixed(2),10));
+    if(c.ot2>0)lines.push(pad('OT hrs 3\u20134 (2\xd7)',22)+pad(fmtH(c.ot2),10)+rpad('$'+(c.rate*2).toFixed(2)+'/hr',12)+rpad('$'+c.o2p.toFixed(2),10));
+    if(c.ot3>0)lines.push(pad('OT hr 5+ (3\xd7)',22)+pad(fmtH(c.ot3),10)+rpad('$'+(c.rate*3).toFixed(2)+'/hr',12)+rpad('$'+c.o3p.toFixed(2),10));
+  }
+  if(c.mpLateLunchPay>0){
+    var cll1=Math.min((c.lOut-c.ld)/60,1),cll2=Math.max((c.lOut-c.ld)/60-1,0);
+    if(cll1>0)lines.push(pad('Late lunch 2\xd7 (1st hr)',22)+pad(fmtH(cll1),10)+rpad('$'+(c.mpRate*2).toFixed(2)+'/hr',12)+rpad('$'+(cll1*c.mpRate*2).toFixed(2),10));
+    if(cll2>0)lines.push(pad('Late lunch 3\xd7 (2hr+)',22)+pad(fmtH(cll2),10)+rpad('$'+(c.mpRate*3).toFixed(2)+'/hr',12)+rpad('$'+(cll2*c.mpRate*3).toFixed(2),10));
+  }
+  if(c.mpCamWrapPay>0)lines.push(pad('Cam wrap penalty 2\xd7',22)+pad('',10)+rpad('$'+(c.mpRate*2).toFixed(2)+'/hr',12)+rpad('$'+c.mpCamWrapPay.toFixed(2),10));
+  lines.push('\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');
+  lines.push(pad('TOTAL',22)+pad(cIsFlat?fmtH(c.workedH):fmtH(c.billWorked),10)+rpad('',12)+rpad('$'+c.total.toFixed(2),10));
+  lines.push('\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');
+  if(c.alerts&&c.alerts.length){
+    lines.push('');
+    lines.push('Notes:');
+    c.alerts.forEach(function(a){lines.push('\u2022 '+a.msg);});
+  }
+  return lines.join('\n');
+}
+
+function copyBreakdown(){
+  var text=buildInvoiceText();
+  if(!text)return;
+  var btn=document.getElementById('copyBtn');
+  var lbl=document.getElementById('copyLabel');
+  navigator.clipboard.writeText(text).then(function(){
+    btn.classList.add('copied');
+    lbl.textContent='Copied!';
+    btn.querySelector('svg').innerHTML='<path d="M2 8l4 4 8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
+    setTimeout(function(){
+      btn.classList.remove('copied');
+      lbl.textContent='Copy breakdown for invoice';
+      btn.querySelector('svg').innerHTML='<rect x="5" y="5" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M3 11H2.5A1.5 1.5 0 0 1 1 9.5v-7A1.5 1.5 0 0 1 2.5 1h7A1.5 1.5 0 0 1 11 2.5V3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>';
+    },2500);
+  });
+}
+function showInvoice(){
+  if(!lastCalc){alert('Run a calculation first.');return;}
+  // Set today as default invoice date
+  var today=new Date().toISOString().split('T')[0];
+  document.getElementById('invDate').value=today;
+  // Prefill shoot date from lastCalc if not already set
+  if(!document.getElementById('invShootDate').value)
+    document.getElementById('invShootDate').value=today;
+  // Build billing preview
+  buildInvBillingPreview();
+  showScreen('invoice');
+}
+
+function buildInvBillingPreview(){
+  var c=lastCalc;
+  if(!c)return;
+  var html='';
+  var fmtD=function(v){return'$'+parseFloat(v).toFixed(2);};
+  if(c.isFlat){
+    html+='<div class="inv-row"><span>Flat day rate ('+c.role+')</span><span>'+fmtD(c.rate)+'</span></div>';
+    if(c.flatOtH>0)html+='<div class="inv-row"><span>OT after 14h ('+fmtH(c.flatOtH)+' @ $25/hr)</span><span>'+fmtD(c.flatOtPay)+'</span></div>';
+  } else {
+    html+='<div class="inv-row"><span>Morning — '+fmtH(c.billMorning)+' @ $'+c.rate.toFixed(2)+'/hr</span><span>'+fmtD(c.billMorning*c.rate)+'</span></div>';
+    html+='<div class="inv-row inv-muted"><span>Lunch — unpaid</span><span>—</span></div>';
+    html+='<div class="inv-row"><span>Afternoon — '+fmtH(c.billAfternoon)+' @ $'+c.rate.toFixed(2)+'/hr</span><span>'+fmtD(c.billAfternoon*c.rate)+'</span></div>';
+    if(c.ot1>0)html+='<div class="inv-row"><span>OT hrs 1–2 — '+fmtH(c.ot1)+' @ $'+(c.rate*1.5).toFixed(2)+'/hr (1.5×)</span><span>'+fmtD(c.o1p)+'</span></div>';
+    if(c.ot2>0)html+='<div class="inv-row"><span>OT hrs 3–4 — '+fmtH(c.ot2)+' @ $'+(c.rate*2).toFixed(2)+'/hr (2×)</span><span>'+fmtD(c.o2p)+'</span></div>';
+    if(c.ot3>0)html+='<div class="inv-row"><span>OT hr 5+ — '+fmtH(c.ot3)+' @ $'+(c.rate*3).toFixed(2)+'/hr (3×)</span><span>'+fmtD(c.o3p)+'</span></div>';
+  }
+  if(c.mpLateLunchPay>0){
+    var ll1=Math.min((c.lOut-c.ld)/60,1),ll2=Math.max((c.lOut-c.ld)/60-1,0);
+    if(ll1>0)html+='<div class="inv-row" style="color:#a65800"><span>Late lunch penalty 2× — '+fmtH(ll1)+'</span><span>'+fmtD(ll1*c.mpRate*2)+'</span></div>';
+    if(ll2>0)html+='<div class="inv-row" style="color:#a65800"><span>Late lunch penalty 3× — '+fmtH(ll2)+'</span><span>'+fmtD(ll2*c.mpRate*3)+'</span></div>';
+  }
+  if(c.mpCamWrapPay>0)html+='<div class="inv-row" style="color:#a65800"><span>Camera wrap penalty 2×</span><span>'+fmtD(c.mpCamWrapPay)+'</span></div>';
+  html+='<div class="inv-row-total"><span>Total Due</span><span>$'+c.total.toFixed(2)+'</span></div>';
+  document.getElementById('invBillingSummary').innerHTML=html;
+}
+
+function getInvData(){
+  return{
+    name:document.getElementById('invName').value.trim(),
+    company:document.getElementById('invCompany').value.trim(),
+    address:document.getElementById('invAddress').value.trim(),
+    email:document.getElementById('invEmail').value.trim(),
+    phone:document.getElementById('invPhone').value.trim(),
+    tax:document.getElementById('invTax').value.trim(),
+    number:document.getElementById('invNumber').value.trim()||'INV-001',
+    date:document.getElementById('invDate').value,
+    due:document.getElementById('invDue').value,
+    terms:document.getElementById('invTerms').value.trim(),
+    client:document.getElementById('invClient').value.trim(),
+    clientAddr:document.getElementById('invClientAddr').value.trim(),
+    production:document.getElementById('invProduction').value.trim(),
+    shootDate:document.getElementById('invShootDate').value,
+    po:document.getElementById('invPO').value.trim(),
+    notes:document.getElementById('invNotes').value.trim()
+  };
+}
+
+function fmtDateDisplay(d){if(!d)return'';var p=d.split('-');return p[1]+'/'+p[2]+'/'+p[0];}
+
+function exportInvoicePDF(){
+  var inv=getInvData();
+  var c=lastCalc;
+  if(!c){alert('No billing data found.');return;}
+  var jspdf=window.jspdf||window.jsPDF;
+  var doc=new jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'letter'});
+  var W=215.9,ml=18,mr=18,cw=W-ml-mr;
+  var y=20;
+  var accent=[94,92,230];
+  var dark=[28,28,30];
+  var mid=[72,72,74];
+  var light=[142,142,147];
+
+  // Header bar
+  doc.setFillColor(accent[0],accent[1],accent[2]);
+  doc.rect(0,0,W,14,'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(9);doc.setFont('helvetica','bold');
+  doc.text('INVOICE',ml,9.5);
+  doc.setFont('helvetica','normal');
+  doc.text(inv.number,W-mr,9.5,{align:'right'});
+  y=24;
+
+  // From / To
+  doc.setTextColor(dark[0],dark[1],dark[2]);
+  doc.setFontSize(11);doc.setFont('helvetica','bold');
+  doc.text(inv.name||'Your Name',ml,y);
+  y+=5;
+  if(inv.company){doc.setFontSize(9.5);doc.setFont('helvetica','normal');doc.setTextColor(mid[0],mid[1],mid[2]);doc.text(inv.company,ml,y);y+=4.5;}
+  if(inv.address){doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(mid[0],mid[1],mid[2]);var addrLines=doc.splitTextToSize(inv.address,cw*0.45);doc.text(addrLines,ml,y);y+=addrLines.length*4;}
+  if(inv.email){doc.text(inv.email,ml,y);y+=4;}
+  if(inv.phone){doc.text(inv.phone,ml,y);y+=4;}
+  if(inv.tax){doc.setTextColor(light[0],light[1],light[2]);doc.text('HST/GST: '+inv.tax,ml,y);y+=4;}
+
+  // Bill To (right side)
+  var toX=ml+cw*0.52;
+  var ty=24;
+  doc.setFontSize(8.5);doc.setFont('helvetica','bold');doc.setTextColor(accent[0],accent[1],accent[2]);
+  doc.text('BILL TO',toX,ty);ty+=5;
+  doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(dark[0],dark[1],dark[2]);
+  doc.text(inv.client||'Client Name',toX,ty);ty+=5;
+  if(inv.clientAddr){doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(mid[0],mid[1],mid[2]);var caLines=doc.splitTextToSize(inv.clientAddr,cw*0.48);doc.text(caLines,toX,ty);ty+=caLines.length*4;}
+
+  y=Math.max(y,ty)+4;
+
+  // Divider
+  doc.setDrawColor(220,220,230);doc.setLineWidth(0.4);
+  doc.line(ml,y,W-mr,y);y+=7;
+
+  // Invoice meta row
+  var cols=[['Invoice Date',fmtDateDisplay(inv.date)],['Due Date',inv.due?fmtDateDisplay(inv.due):'—'],['Shoot Date',fmtDateDisplay(inv.shootDate)]];
+  if(inv.production)cols.push(['Production',inv.production]);
+  if(inv.po)cols.push(['PO Number',inv.po]);
+  var colW=cw/Math.min(cols.length,4);
+  cols.slice(0,4).forEach(function(col,i){
+    var cx=ml+i*colW;
+    doc.setFontSize(7.5);doc.setFont('helvetica','bold');doc.setTextColor(accent[0],accent[1],accent[2]);
+    doc.text(col[0].toUpperCase(),cx,y);
+    doc.setFontSize(9.5);doc.setFont('helvetica','normal');doc.setTextColor(dark[0],dark[1],dark[2]);
+    var valLines=doc.splitTextToSize(col[1]||'—',colW-4);
+    doc.text(valLines,cx,y+4.5);
+  });
+  if(cols.length>4){
+    var c2=cols[4];var cx=ml+0*colW;
+    doc.setFontSize(7.5);doc.setFont('helvetica','bold');doc.setTextColor(accent[0],accent[1],accent[2]);
+    doc.text(c2[0].toUpperCase(),cx,y+11);
+    doc.setFontSize(9.5);doc.setFont('helvetica','normal');doc.setTextColor(dark[0],dark[1],dark[2]);
+    doc.text(c2[1]||'—',cx,y+15.5);
+    y+=8;
+  }
+  y+=16;
+
+  // Table header
+  doc.setFillColor(44,44,60);
+  doc.roundedRect(ml,y,cw,8,2,2,'F');
+  doc.setFontSize(8.5);doc.setFont('helvetica','bold');doc.setTextColor(255,255,255);
+  doc.text('DESCRIPTION',ml+4,y+5.3);
+  doc.text('AMOUNT',W-mr-4,y+5.3,{align:'right'});
+  y+=11;
+
+  // Table rows
+  var rows=[];
+  if(c.isFlat){
+    rows.push(['Flat day rate — '+c.role+' (incl. 14h)',c.rate.toFixed(2)]);
+    rows.push(['Lunch — unpaid','—']);
+    if(c.flatOtH>0)rows.push(['OT after 14h — '+fmtH(c.flatOtH)+' @ $25/hr',c.flatOtPay.toFixed(2)]);
+  } else {
+    rows.push(['Morning — '+fmtH(c.billMorning)+' @ $'+c.rate.toFixed(2)+'/hr (1×)',(c.billMorning*c.rate).toFixed(2)]);
+    rows.push(['Lunch — unpaid','—']);
+    rows.push(['Afternoon — '+fmtH(c.billAfternoon)+' @ $'+c.rate.toFixed(2)+'/hr (1×)',(c.billAfternoon*c.rate).toFixed(2)]);
+    if(c.ot1>0)rows.push(['OT hrs 1–2 — '+fmtH(c.ot1)+' @ $'+(c.rate*1.5).toFixed(2)+'/hr (1.5×)',c.o1p.toFixed(2)]);
+    if(c.ot2>0)rows.push(['OT hrs 3–4 — '+fmtH(c.ot2)+' @ $'+(c.rate*2).toFixed(2)+'/hr (2×)',c.o2p.toFixed(2)]);
+    if(c.ot3>0)rows.push(['OT hr 5+ — '+fmtH(c.ot3)+' @ $'+(c.rate*3).toFixed(2)+'/hr (3×)',c.o3p.toFixed(2)]);
+  }
+  if(c.mpLateLunchPay>0){
+    var ll1=Math.min((c.lOut-c.ld)/60,1),ll2=Math.max((c.lOut-c.ld)/60-1,0);
+    if(ll1>0)rows.push(['Late lunch meal penalty (2×) — '+fmtH(ll1),(ll1*c.mpRate*2).toFixed(2)]);
+    if(ll2>0)rows.push(['Late lunch meal penalty (3×) — '+fmtH(ll2),(ll2*c.mpRate*3).toFixed(2)]);
+  }
+  if(c.mpCamWrapPay>0)rows.push(['Camera wrap meal penalty (2×)',c.mpCamWrapPay.toFixed(2)]);
+
+  rows.forEach(function(row,i){
+    var bg=i%2===0?[250,250,255]:[255,255,255];
+    doc.setFillColor(bg[0],bg[1],bg[2]);
+    doc.rect(ml,y,cw,7.5,'F');
+    var isMuted=row[1]==='—';
+    doc.setFontSize(9);doc.setFont('helvetica','normal');
+    doc.setTextColor(isMuted?light[0]:dark[0],isMuted?light[1]:dark[1],isMuted?light[2]:dark[2]);
+    doc.text(row[0],ml+4,y+5.2);
+    doc.text(isMuted?'—':'$'+row[1],W-mr-4,y+5.2,{align:'right'});
+    y+=7.5;
+  });
+
+  // Total bar
+  y+=3;
+  doc.setFillColor(accent[0],accent[1],accent[2]);
+  doc.roundedRect(ml,y,cw,10,2,2,'F');
+  doc.setFontSize(11);doc.setFont('helvetica','bold');doc.setTextColor(255,255,255);
+  doc.text('TOTAL DUE',ml+4,y+6.8);
+  doc.text('$'+c.total.toFixed(2),W-mr-4,y+6.8,{align:'right'});
+  y+=16;
+
+  // Notes
+  if(inv.notes||inv.terms){
+    doc.setDrawColor(220,220,230);doc.line(ml,y,W-mr,y);y+=6;
+    if(inv.terms){
+      doc.setFontSize(8.5);doc.setFont('helvetica','bold');doc.setTextColor(mid[0],mid[1],mid[2]);
+      doc.text('PAYMENT TERMS',ml,y);y+=4.5;
+      doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(dark[0],dark[1],dark[2]);
+      doc.text(inv.terms,ml,y);y+=7;
+    }
+    if(inv.notes){
+      doc.setFontSize(8.5);doc.setFont('helvetica','bold');doc.setTextColor(mid[0],mid[1],mid[2]);
+      doc.text('NOTES',ml,y);y+=4.5;
+      doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(dark[0],dark[1],dark[2]);
+      var noteLines=doc.splitTextToSize(inv.notes,cw);
+      doc.text(noteLines,ml,y);y+=noteLines.length*4.5;
+    }
+  }
+
+  // Footer
+  var footerY=265;
+  doc.setDrawColor(220,220,230);doc.line(ml,footerY,W-mr,footerY);
+  doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(light[0],light[1],light[2]);
+  doc.text('Generated by Set Time Calculator — ACCP Recommended Rates July 2025–June 2026',W/2,footerY+5,{align:'center'});
+
+  var fname=(inv.number||'invoice')+'_'+(inv.client||'client').replace(/[^a-z0-9]/gi,'_')+'.pdf';
+  doc.save(fname);
+}
+
+
+</script>
+</body>
+</html>
