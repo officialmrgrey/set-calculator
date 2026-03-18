@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!--
+  Set Time Calculator — Auth
+  Copyright © 2025 Greyed Out LTD. All rights reserved.
+-->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Set Calc">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#2d2d45">
+<title>Sign In — Set Time Calculator</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%232d2d45'/><rect x='8' y='6' width='16' height='20' rx='4' fill='%234a4870'/><rect x='8' y='6' width='16' height='6' fill='%232d2d3a'/><line x1='10' y1='6' x2='8' y2='12' stroke='%235e5ce6' stroke-width='2'/><line x1='14' y1='6' x2='12' y2='12' stroke='%235e5ce6' stroke-width='2'/><line x1='18' y1='6' x2='16' y2='12' stroke='%235e5ce6' stroke-width='2'/><line x1='22' y1='6' x2='20' y2='12' stroke='%235e5ce6' stroke-width='2'/><circle cx='16' cy='20' r='4' fill='none' stroke='white' stroke-width='1' opacity='.5'/><line x1='16' y1='20' x2='16' y2='16.5' stroke='white' stroke-width='1.5' stroke-linecap='round'/><line x1='16' y1='20' x2='19' y2='21' stroke='%235e5ce6' stroke-width='1.5' stroke-linecap='round'/></svg>">
+
+<!-- Supabase JS SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --glass: rgba(255,255,255,0.52);
+  --glass-border: rgba(255,255,255,0.82);
+  --glass-input: rgba(255,255,255,0.42);
+  --glass-input-focus: rgba(255,255,255,0.72);
+  --text:  #1c1c1e;
+  --text2: #48484a;
+  --text3: #8e8e93;
+  --shadow-card: 0 8px 32px rgba(0,0,0,0.09), 0 1.5px 4px rgba(0,0,0,0.06);
+  --radius: 22px; --radius-sm: 18px; --radius-xs: 14px;
+  --accent: #5e5ce6; --accent-dim: rgba(94,92,230,0.12); --accent-border: rgba(94,92,230,0.25);
+}
+
+html, body { height: 100%; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  min-height: 100vh;
+  background: #e4e4ea;
+  background-image:
+    radial-gradient(ellipse 70% 55% at 15% 10%, rgba(94,92,230,0.08) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 45% at 88% 85%, rgba(52,199,89,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 35% at 75% 15%, rgba(255,149,0,0.04) 0%, transparent 45%);
+  background-attachment: fixed;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: env(safe-area-inset-top, 20px) 20px env(safe-area-inset-bottom, 20px);
+}
+
+/* ── Animated background glow ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 20%, rgba(94,92,230,0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 80%, rgba(52,199,89,0.06) 0%, transparent 55%);
+  animation: bgPulse 6s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+@keyframes bgPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+/* ── Card ── */
+.auth-card {
+  position: relative; z-index: 1;
+  width: 100%; max-width: 380px;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  padding: 36px 28px 32px;
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  animation: cardIn 0.7s cubic-bezier(0.16,1,0.3,1) both;
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(24px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── Logo ── */
+.auth-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 28px;
+  animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) 0.1s both;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.auth-logo svg {
+  width: 64px; height: 64px;
+  filter: drop-shadow(0 4px 16px rgba(94,92,230,0.25));
+  animation: float 4s ease-in-out 1s infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-5px); }
+}
+.auth-logo-title {
+  font-size: 22px; font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-top: 14px;
+}
+.auth-logo-sub {
+  font-size: 13px; color: var(--text3);
+  margin-top: 4px; text-align: center;
+  line-height: 1.4;
+}
+
+/* ── Divider ── */
+.auth-divider {
+  height: 1px;
+  background: rgba(0,0,0,0.07);
+  margin: 24px 0;
+}
+
+/* ── Mode tabs (Sign In / Create Account) ── */
+.auth-tabs {
+  display: flex;
+  background: rgba(0,0,0,0.06);
+  border-radius: 12px;
+  padding: 3px;
+  margin-bottom: 24px;
+  animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) 0.2s both;
+}
+.auth-tab {
+  flex: 1; padding: 9px 0;
+  font-size: 14px; font-weight: 600;
+  font-family: inherit; border: none;
+  border-radius: 10px; cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text3); background: transparent;
+}
+.auth-tab.active {
+  background: white;
+  color: var(--text);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+}
+
+/* ── Social sign-in buttons ── */
+.auth-social-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) 0.25s both;
+}
+
+.social-btn {
+  display: flex; align-items: center; justify-content: center;
+  gap: 10px;
+  width: 100%; padding: 14px 20px;
+  font-size: 15px; font-weight: 600;
+  font-family: inherit; border-radius: 14px;
+  cursor: pointer; transition: all 0.18s;
+  position: relative; overflow: hidden;
+}
+.social-btn::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, transparent 100%);
+  border-radius: 14px 14px 0 0;
+  pointer-events: none;
+}
+.social-btn:hover  { transform: translateY(-1px); }
+.social-btn:active { transform: scale(0.98); }
+
+.btn-apple {
+  background: #1c1c1e;
+  color: white;
+  border: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.20);
+}
+.btn-apple:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.28); }
+
+.btn-google {
+  background: white;
+  color: #1c1c1e;
+  border: 1px solid rgba(0,0,0,0.12);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.btn-google:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.14); }
+
+/* ── OR separator ── */
+.auth-or {
+  display: flex; align-items: center; gap: 12px;
+  margin: 20px 0;
+  animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) 0.3s both;
+}
+.auth-or::before, .auth-or::after {
+  content: ''; flex: 1;
+  height: 1px; background: rgba(0,0,0,0.08);
+}
+.auth-or span {
+  font-size: 12px; color: var(--text3); font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ── Email form ── */
+.auth-form {
+  display: flex; flex-direction: column; gap: 12px;
+  animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) 0.35s both;
+}
+.auth-form input {
+  width: 100%; padding: 13px 16px;
+  font-size: 15px; font-family: inherit;
+  background: var(--glass-input);
+  border: 1px solid rgba(0,0,0,0.10);
+  border-radius: 12px; outline: none;
+  color: var(--text);
+  transition: all 0.18s;
+}
+.auth-form input:focus {
+  background: var(--glass-input-focus);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+.auth-form input::placeholder { color: var(--text3); }
+
+/* Name row for signup */
+.name-row { display: flex; gap: 10px; }
+.name-row input { flex: 1; }
+
+/* ── Submit button ── */
+.auth-submit {
+  width: 100%; padding: 15px;
+  font-size: 16px; font-weight: 700;
+  font-family: inherit; border: none;
+  border-radius: 14px; cursor: pointer;
+  color: white;
+  background: linear-gradient(160deg, rgba(120,118,255,0.95) 0%, rgba(80,78,220,0.98) 50%, rgba(60,58,200,1) 100%);
+  box-shadow:
+    0 6px 24px rgba(94,92,230,0.38),
+    inset 0 1px 0 rgba(255,255,255,0.4),
+    inset 0 -1px 0 rgba(0,0,0,0.12);
+  transition: all 0.18s;
+  margin-top: 4px;
+  position: relative; overflow: hidden;
+}
+.auth-submit::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.20) 0%, transparent 100%);
+  border-radius: 14px 14px 0 0;
+}
+.auth-submit:hover  { transform: translateY(-1px); box-shadow: 0 10px 32px rgba(94,92,230,0.48), inset 0 1px 0 rgba(255,255,255,0.4); }
+.auth-submit:active { transform: scale(0.98); }
+.auth-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+/* ── Forgot password ── */
+.auth-forgot {
+  text-align: center; margin-top: 14px;
+  font-size: 13px; color: var(--accent);
+  cursor: pointer; font-weight: 500;
+  animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) 0.4s both;
+}
+.auth-forgot:hover { text-decoration: underline; }
+
+/* ── Status message ── */
+.auth-status {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 13px; font-weight: 500;
+  line-height: 1.4; text-align: center;
+  display: none;
+}
+.auth-status.error {
+  display: block;
+  background: rgba(255,59,48,0.10);
+  color: #cc2200;
+  border: 1px solid rgba(255,59,48,0.20);
+}
+.auth-status.success {
+  display: block;
+  background: rgba(52,199,89,0.10);
+  color: #1a7a35;
+  border: 1px solid rgba(52,199,89,0.20);
+}
+.auth-status.info {
+  display: block;
+  background: var(--accent-dim);
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+}
+
+/* ── Footer ── */
+.auth-footer {
+  position: relative; z-index: 1;
+  margin-top: 20px;
+  font-size: 11px; color: var(--text3);
+  text-align: center; line-height: 1.5;
+  animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) 0.5s both;
+}
+
+/* ── Loading spinner ── */
+.spinner {
+  display: inline-block;
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle; margin-right: 6px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Reset / Forgot password screen ── */
+.auth-back {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 14px; font-weight: 600;
+  color: var(--accent); cursor: pointer;
+  margin-bottom: 20px; width: fit-content;
+}
+.auth-back svg { width: 8px; }
+
+/* ── Success state ── */
+.auth-success-wrap {
+  text-align: center; padding: 12px 0;
+}
+.auth-success-icon {
+  width: 56px; height: 56px;
+  background: rgba(52,199,89,0.12);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 16px;
+}
+</style>
+</head>
+<body>
+
+<div class="auth-card" id="authCard">
+
+  <!-- Logo -->
+  <div class="auth-logo">
+    <svg viewBox="0 0 200 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="10" y="40" width="36" height="80" rx="5" fill="#3a3a4a" opacity="0.85"/>
+      <rect x="16" y="48" width="10" height="12" rx="2" fill="#e4e4ea" opacity="0.5"/>
+      <rect x="16" y="66" width="10" height="12" rx="2" fill="#e4e4ea" opacity="0.5"/>
+      <rect x="16" y="84" width="10" height="12" rx="2" fill="#e4e4ea" opacity="0.5"/>
+      <rect x="16" y="102" width="10" height="12" rx="2" fill="#e4e4ea" opacity="0.5"/>
+      <rect x="154" y="40" width="36" height="80" rx="5" fill="#3a3a4a" opacity="0.85"/>
+      <rect x="174" y="48" width="10" height="12" rx="2" fill="#e4e4ea" opacity="0.5"/>
+      <rect x="174" y="66" width="10" height="12" rx="2" fill="#e4e4ea" opacity="0.5"/>
+      <rect x="174" y="84" width="10" height="12" rx="2" fill="#e4e4ea" opacity="0.5"/>
+      <rect x="174" y="102" width="10" height="12" rx="2" fill="#e4e4ea" opacity="0.5"/>
+      <rect x="48" y="32" width="104" height="96" rx="8" fill="url(#sg)" stroke="rgba(255,255,255,0.35)" stroke-width="1.5"/>
+      <clipPath id="cp1"><rect x="48" y="32" width="104" height="28" rx="8"/></clipPath>
+      <rect x="48" y="32" width="104" height="28" fill="#2d2d3a" clip-path="url(#cp1)"/>
+      <g clip-path="url(#cp1)">
+        <line x1="58" y1="32" x2="48" y2="60" stroke="#5e5ce6" stroke-width="8"/>
+        <line x1="78" y1="32" x2="68" y2="60" stroke="#5e5ce6" stroke-width="8"/>
+        <line x1="98" y1="32" x2="88" y2="60" stroke="#5e5ce6" stroke-width="8"/>
+        <line x1="118" y1="32" x2="108" y2="60" stroke="#5e5ce6" stroke-width="8"/>
+        <line x1="138" y1="32" x2="128" y2="60" stroke="#5e5ce6" stroke-width="8"/>
+      </g>
+      <circle cx="100" cy="94" r="30" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/>
+      <circle cx="100" cy="94" r="2.5" fill="#5e5ce6"/>
+      <line x1="100" y1="94" x2="100" y2="75" stroke="white" stroke-width="2.5" stroke-linecap="round" opacity="0.9"/>
+      <line x1="100" y1="94" x2="116" y2="98" stroke="#5e5ce6" stroke-width="2" stroke-linecap="round"/>
+      <defs>
+        <linearGradient id="sg" x1="48" y1="32" x2="152" y2="128" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#4a4870"/>
+          <stop offset="100%" stop-color="#2d2d45"/>
+        </linearGradient>
+      </defs>
+    </svg>
+    <div class="auth-logo-title">Set Time Calculator</div>
+    <div class="auth-logo-sub">Sign in to save your jobs, productions<br>and access your calendar</div>
+  </div>
+
+  <!-- View: Sign in / Create account -->
+  <div id="view-auth">
+
+    <!-- Tab toggle -->
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-signin" onclick="switchTab('signin')">Sign In</button>
+      <button class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Create Account</button>
+    </div>
+
+    <!-- Social buttons -->
+    <div class="auth-social-btns">
+      <button class="social-btn btn-apple" onclick="signInWithApple()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <path d="M14.05 9.54c-.02-2.14 1.75-3.17 1.83-3.22-1-1.46-2.55-1.66-3.1-1.68-1.32-.13-2.58.78-3.25.78-.68 0-1.72-.76-2.83-.74C5.2 4.7 3.74 5.6 2.93 7c-1.64 2.84-.42 7.06 1.18 9.37.78 1.13 1.72 2.4 2.95 2.35 1.19-.05 1.64-.77 3.08-.77 1.43 0 1.84.77 3.09.74 1.27-.02 2.08-1.15 2.86-2.29.9-1.31 1.27-2.59 1.29-2.66-.03-.01-2.47-.95-2.49-3.78-.02 0 .15.04.16.04z" fill="white"/>
+          <path d="M11.73 3.17c.65-.79 1.09-1.88.97-2.97-.94.04-2.08.63-2.75 1.41-.6.69-1.13 1.8-.99 2.86 1.05.08 2.12-.54 2.77-1.3z" fill="white"/>
+        </svg>
+        Continue with Apple
+      </button>
+      <button class="social-btn btn-google" onclick="signInWithGoogle()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
+          <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
+          <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+          <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+        </svg>
+        Continue with Google
+      </button>
+    </div>
+
+    <div class="auth-or"><span>or</span></div>
+
+    <!-- Email form -->
+    <div class="auth-form" id="emailForm">
+      <!-- Name fields shown only on signup -->
+      <div class="name-row" id="nameRow" style="display:none">
+        <input type="text" id="firstName" placeholder="First name" autocomplete="given-name">
+        <input type="text" id="lastName" placeholder="Last name" autocomplete="family-name">
+      </div>
+      <input type="email" id="emailInput" placeholder="Email address" autocomplete="email">
+      <input type="password" id="passwordInput" placeholder="Password" autocomplete="current-password">
+      <!-- Confirm password shown only on signup -->
+      <input type="password" id="confirmPassword" placeholder="Confirm password" autocomplete="new-password" style="display:none">
+      <button class="auth-submit" id="submitBtn" onclick="handleEmailAuth()">
+        <span id="submitLabel">Sign In</span>
+      </button>
+    </div>
+
+    <div class="auth-forgot" id="forgotLink" onclick="showView('forgot')">Forgot password?</div>
+    <div class="auth-status" id="authStatus"></div>
+
+  </div><!-- /view-auth -->
+
+  <!-- View: Forgot password -->
+  <div id="view-forgot" style="display:none">
+    <div class="auth-back" onclick="showView('auth')">
+      <svg viewBox="0 0 8 14" fill="none"><path d="M7 13L1 7L7 1" stroke="#5e5ce6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Back to sign in
+    </div>
+    <div style="margin-bottom:20px">
+      <div style="font-size:18px;font-weight:700;margin-bottom:6px">Reset password</div>
+      <div style="font-size:13px;color:var(--text3);line-height:1.5">Enter your email and we'll send you a link to reset your password.</div>
+    </div>
+    <div class="auth-form">
+      <input type="email" id="resetEmail" placeholder="Email address" autocomplete="email">
+      <button class="auth-submit" onclick="handlePasswordReset()">Send Reset Link</button>
+    </div>
+    <div class="auth-status" id="resetStatus"></div>
+  </div>
+
+  <!-- View: Email verification sent -->
+  <div id="view-verify" style="display:none">
+    <div class="auth-success-wrap">
+      <div class="auth-success-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M20 6L9 17L4 12" stroke="#34c759" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div style="font-size:18px;font-weight:700;margin-bottom:8px">Check your email</div>
+      <div style="font-size:13px;color:var(--text3);line-height:1.6">
+        We sent a confirmation link to<br>
+        <strong id="verifyEmailDisplay" style="color:var(--text)"></strong><br><br>
+        Click the link in the email to activate your account, then come back and sign in.
+      </div>
+      <div style="margin-top:20px">
+        <button class="auth-submit" onclick="showView('auth')">Back to Sign In</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /auth-card -->
+
+<div class="auth-footer">
+  &copy; 2025 Greyed Out LTD. All rights reserved.
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// SUPABASE CONFIGURATION
+// Replace these with your actual project values from supabase.com
+// ─────────────────────────────────────────────
+const SUPABASE_URL  = 'https://odlaijkrycybmrbfjoai.supabase.co';   // e.g. https://abcdefgh.supabase.co
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kbGFpamtyeWN5Ym1yYmZqb2FpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MTAxMzYsImV4cCI6MjA4OTM4NjEzNn0.LbIpOC0hz3zhlpBFYab3I8EsrVWr5givQ5D7TNniCtE'; // your project's anon/public key
+
+const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+// ─────────────────────────────────────────────
+// On load — check if user already signed in
+// ─────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  const { data: { session } } = await _supabase.auth.getSession();
+  if (session) {
+    // Already logged in — go to the app
+    window.location.href = 'index.html';
+  }
+
+  // Handle OAuth redirect (Apple/Google callback)
+  _supabase.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+      window.location.href = 'index.html';
+    }
+  });
+});
+
+// ─────────────────────────────────────────────
+// Tab switching
+// ─────────────────────────────────────────────
+let currentTab = 'signin';
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tab-signin').classList.toggle('active', tab === 'signin');
+  document.getElementById('tab-signup').classList.toggle('active', tab === 'signup');
+  document.getElementById('nameRow').style.display       = tab === 'signup' ? 'flex' : 'none';
+  document.getElementById('confirmPassword').style.display = tab === 'signup' ? '' : 'none';
+  document.getElementById('forgotLink').style.display    = tab === 'signin' ? '' : 'none';
+  document.getElementById('submitLabel').textContent     = tab === 'signin' ? 'Sign In' : 'Create Account';
+  document.getElementById('passwordInput').autocomplete  = tab === 'signup' ? 'new-password' : 'current-password';
+  clearStatus('authStatus');
+}
+
+// ─────────────────────────────────────────────
+// View switching
+// ─────────────────────────────────────────────
+function showView(view) {
+  document.getElementById('view-auth').style.display   = view === 'auth'   ? '' : 'none';
+  document.getElementById('view-forgot').style.display = view === 'forgot' ? '' : 'none';
+  document.getElementById('view-verify').style.display = view === 'verify' ? '' : 'none';
+}
+
+// ─────────────────────────────────────────────
+// Status helpers
+// ─────────────────────────────────────────────
+function showStatus(id, msg, type) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = 'auth-status ' + type;
+}
+function clearStatus(id) {
+  const el = document.getElementById(id);
+  el.textContent = '';
+  el.className = 'auth-status';
+}
+
+function setLoading(loading) {
+  const btn = document.getElementById('submitBtn');
+  const lbl = document.getElementById('submitLabel');
+  btn.disabled = loading;
+  lbl.innerHTML = loading
+    ? '<span class="spinner"></span>' + (currentTab === 'signin' ? 'Signing in…' : 'Creating account…')
+    : (currentTab === 'signin' ? 'Sign In' : 'Create Account');
+}
+
+// ─────────────────────────────────────────────
+// Email auth
+// ─────────────────────────────────────────────
+async function handleEmailAuth() {
+  const email    = document.getElementById('emailInput').value.trim();
+  const password = document.getElementById('passwordInput').value;
+  clearStatus('authStatus');
+
+  if (!email || !password) {
+    showStatus('authStatus', 'Please fill in all fields.', 'error');
+    return;
+  }
+
+  if (currentTab === 'signup') {
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName  = document.getElementById('lastName').value.trim();
+    const confirm   = document.getElementById('confirmPassword').value;
+
+    if (!firstName) { showStatus('authStatus', 'Please enter your first name.', 'error'); return; }
+    if (password !== confirm) { showStatus('authStatus', 'Passwords don\'t match.', 'error'); return; }
+    if (password.length < 8)  { showStatus('authStatus', 'Password must be at least 8 characters.', 'error'); return; }
+
+    setLoading(true);
+    const { error } = await _supabase.auth.signUp({
+      email, password,
+      options: {
+        data: { first_name: firstName, last_name: lastName, full_name: firstName + ' ' + lastName }
+      }
+    });
+    setLoading(false);
+
+    if (error) {
+      showStatus('authStatus', error.message, 'error');
+    } else {
+      document.getElementById('verifyEmailDisplay').textContent = email;
+      showView('verify');
+    }
+
+  } else {
+    setLoading(true);
+    const { error } = await _supabase.auth.signInWithPassword({ email, password });
+    setLoading(false);
+
+    if (error) {
+      showStatus('authStatus', error.message === 'Invalid login credentials'
+        ? 'Incorrect email or password. Please try again.'
+        : error.message, 'error');
+    }
+    // onAuthStateChange handles redirect on success
+  }
+}
+
+// Allow Enter key to submit
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const view = document.getElementById('view-auth').style.display;
+    if (view !== 'none') handleEmailAuth();
+  }
+});
+
+// ─────────────────────────────────────────────
+// Apple Sign In
+// ─────────────────────────────────────────────
+async function signInWithApple() {
+  const { error } = await _supabase.auth.signInWithOAuth({
+    provider: 'apple',
+    options: {
+      redirectTo: window.location.origin + '/set-calculator/auth.html',
+      scopes: 'name email',
+    }
+  });
+  if (error) showStatus('authStatus', error.message, 'error');
+}
+
+// ─────────────────────────────────────────────
+// Google Sign In
+// ─────────────────────────────────────────────
+async function signInWithGoogle() {
+  const { error } = await _supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.origin + '/set-calculator/auth.html',
+    }
+  });
+  if (error) showStatus('authStatus', error.message, 'error');
+}
+
+// ─────────────────────────────────────────────
+// Password reset
+// ─────────────────────────────────────────────
+async function handlePasswordReset() {
+  const email = document.getElementById('resetEmail').value.trim();
+  if (!email) { showStatus('resetStatus', 'Please enter your email.', 'error'); return; }
+
+  const { error } = await _supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + '/set-calculator/auth.html?mode=reset',
+  });
+
+  if (error) {
+    showStatus('resetStatus', error.message, 'error');
+  } else {
+    showStatus('resetStatus', 'Reset link sent — check your inbox.', 'success');
+  }
+}
+</script>
+
+</body>
+</html>
