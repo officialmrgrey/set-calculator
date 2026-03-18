@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Set Time Calculator — Release Notes · March 18, 2026</title>
+<style>
+  :root {
+    --accent: #5e5ce6;
+    --accent-dim: rgba(94,92,230,0.1);
+    --text: #1c1c1e;
+    --text2: #3a3a3c;
+    --text3: #8e8e93;
+    --bg: #f2f2f7;
+    --card: #ffffff;
+    --border: rgba(0,0,0,0.08);
+    --radius: 16px;
+    --orange: #ff9500;
+    --blue: #32ade6;
+    --purple: #af52de;
+    --green: #34c759;
+    --red: #ff3b30;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(160deg, #3a38c0 0%, #5e5ce6 60%, #7c7aff 100%);
+    padding: 52px 24px 40px;
+    text-align: center;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 70% 30%, rgba(255,255,255,0.12) 0%, transparent 60%);
+  }
+  .header-logo {
+    font-size: 36px; margin-bottom: 10px; position: relative; z-index: 1;
+  }
+  .header h1 {
+    font-size: 26px; font-weight: 800; letter-spacing: -0.03em;
+    position: relative; z-index: 1;
+  }
+  .header-sub {
+    font-size: 14px; opacity: 0.75; margin-top: 6px;
+    position: relative; z-index: 1; font-weight: 500;
+  }
+  .version-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 100px;
+    padding: 4px 14px;
+    font-size: 12px; font-weight: 700;
+    margin-top: 14px;
+    position: relative; z-index: 1;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Layout ── */
+  .container {
+    max-width: 680px; margin: 0 auto;
+    padding: 28px 16px 60px;
+  }
+
+  /* ── Section ── */
+  .section { margin-bottom: 28px; }
+
+  .section-header {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 12px;
+  }
+  .section-icon {
+    width: 34px; height: 34px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; flex-shrink: 0;
+  }
+  .section-title {
+    font-size: 18px; font-weight: 800; letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .section-sub {
+    font-size: 12px; color: var(--text3); font-weight: 500;
+    letter-spacing: 0.02em; text-transform: uppercase; margin-top: 1px;
+  }
+
+  /* ── Card ── */
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06), 0 0 0 1px var(--border);
+  }
+
+  /* ── Change item ── */
+  .change-item {
+    display: flex; gap: 12px; padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    align-items: flex-start;
+  }
+  .change-item:last-child { border-bottom: none; }
+
+  .change-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    margin-top: 6px; flex-shrink: 0;
+  }
+  .dot-new     { background: var(--green); }
+  .dot-improve { background: var(--accent); }
+  .dot-fix     { background: var(--orange); }
+  .dot-security{ background: var(--red); }
+
+  .change-content { flex: 1; }
+  .change-title {
+    font-size: 14px; font-weight: 700; color: var(--text);
+    line-height: 1.4; margin-bottom: 2px;
+  }
+  .change-desc {
+    font-size: 13px; color: var(--text3); line-height: 1.5;
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 9px; font-weight: 800;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 2px 7px; border-radius: 4px;
+    margin-right: 5px; vertical-align: middle;
+  }
+  .tag-new      { background: rgba(52,199,89,0.12);  color: #1a6b2a; }
+  .tag-fix      { background: rgba(255,149,0,0.12);  color: #8a4500; }
+  .tag-improve  { background: var(--accent-dim);      color: var(--accent); }
+  .tag-security { background: rgba(255,59,48,0.1);   color: #c0392b; }
+
+  /* ── Colour swatches inline ── */
+  .swatch {
+    display: inline-block; width: 10px; height: 10px;
+    border-radius: 50%; vertical-align: middle; margin: 0 2px;
+  }
+
+  /* ── Summary bar ── */
+  .summary {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06), 0 0 0 1px var(--border);
+    display: flex; gap: 0; margin-bottom: 28px;
+  }
+  .summary-stat {
+    flex: 1; text-align: center;
+    border-right: 1px solid var(--border);
+  }
+  .summary-stat:last-child { border-right: none; }
+  .summary-num {
+    font-size: 28px; font-weight: 900;
+    letter-spacing: -0.03em; color: var(--accent);
+  }
+  .summary-label {
+    font-size: 10px; color: var(--text3);
+    font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.04em; margin-top: 2px;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    font-size: 12px; color: var(--text3);
+    padding: 16px 24px 40px;
+    border-top: 1px solid var(--border);
+  }
+  .footer strong { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">🎬</div>
+  <h1>Set Time Calculator</h1>
+  <div class="header-sub">kristianwood.github.io/set-calculator</div>
+  <div class="version-badge">Release Notes · March 18, 2026</div>
+</div>
+
+<div class="container">
+
+  <!-- Summary -->
+  <div class="summary">
+    <div class="summary-stat">
+      <div class="summary-num">22</div>
+      <div class="summary-label">New Features</div>
+    </div>
+    <div class="summary-stat">
+      <div class="summary-num">11</div>
+      <div class="summary-label">Improvements</div>
+    </div>
+    <div class="summary-stat">
+      <div class="summary-num">8</div>
+      <div class="summary-label">Bug Fixes</div>
+    </div>
+  </div>
+
+  <!-- NAVIGATION -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:var(--accent-dim)">🧭</div>
+      <div>
+        <div class="section-title">Navigation</div>
+        <div class="section-sub">Bottom tab bar</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="change-item">
+        <div class="change-dot dot-new"></div>
+        <div class="change-content">
+          <div class="change-title"><span class="tag tag-new">New</span>Bottom navigation bar</div>
+          <div class="change-desc">Frosted glass tab bar with Calculator, Calendar, and Account tabs. Appears on all main screens including the Get Started splash screen. Active tab highlights in purple. Hides automatically when bottom sheets open.</div>
+        </div>
+      </div>
+      <div class="change-item">
+        <div class="change-dot dot-new"></div>
+        <div class="change-content">
+          <div class="change-title"><span class="tag tag-new">New</span>Account screen</div>
+          <div class="change-desc">Shows your email address, a New Calculation shortcut, and a Sign Out button with confirmation prompt.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CALENDAR -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(52,199,89,0.12)">📅</div>
+      <div>
+        <div class="section-title">Calendar</div>
+        <div class="section-sub">WeekCal-style month view</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="change-item">
+        <div class="change-dot dot-new"></div>
+        <div class="change-content">
+          <div class="change-title"><span class="tag tag-new">New</span>Mini month grid with inline job bars</div>
+          <div class="change-desc">Full WeekCal-style calendar grid. Multi-day jobs render as continuous colour bars spanning across days. The job title is centred over its span on every row — no more truncation on week breaks. Up to 3 job lanes per row with overflow indicator.</div>
+        </div>
+      </div>
+      <div class="change-item">
+        <div class="change-dot dot-new"></div>
+        <div class="change-content">
+          <div class="change-title"><span class="tag tag-new">New</span>Add / Edit Shoot sheet</div>
+          <div class="change-desc">Bottom sheet with production name, start/end dates, role dropdown (all ACCP roles with auto-filled day rates), pay, 10 colour swatches, and notes. Role selection auto-fills the day rate field.</div>
+        </div>
+      </div>
+      <div class="change-item">
+        <div class="change-dot dot-new"></div>
+        <div class="change-content">
+          <div class="change-title"><span class="tag tag-new">New</span>Sub-event day types with gradient bars</div>
+          <div class="change-desc">Each job can have Pre-light <span class="swatch" style="background:#ff9500"></span>, Weather Hold <span class="swatch" style="background:#32ade6"></span>, Prep <span class="swatch" style="background:#af52de"></span>, and Wrap <span class="swatch" style="background:#34c759"></span> days. Prep and Wrap are date ranges (multi-day). Pre-light and Weather Hold are individual dates with "+ Add another" support. Special days show as gradient colour blends on the bar — same job, different day colour. The job's date range automatically extends to include all sub-event dates.</div>
+        </div>
+      </div>
+      <div class="change-item">
+        <div class="change-dot dot-new"></div>
+        <div class="change-content">
+          <div class="change-title"><span class="tag tag-new">New</span>Delete with confirmation</div>
+          <div class="change-desc">Trash icon on job cards opens a confirmation sheet naming the job before deleting. No accidental deletes.</div>
+        </div>
+      </div>
+      <div class="change-item">
+        <div class="change-dot dot-new"></div>
+        <div class="change-content">
+          <div class="change-title"><span class="tag tag-new">New</span>Share job link</div>
+          <div class="change-desc">Share icon on cards opens a sheet with two options: Share Full Job (title, dates, role, pay, colour encoded in URL) or Share Hours Only (title and dates only, no pay info). On iOS uses native share sheet; on desktop copies link to clipboard. Recipients opening the link see a confirmation prompt and the job is added directly to their calendar.</div>
+        </div>
+      </div>
+      <div class="change-item">
+        <div class="change-dot dot-new"></div>
+        <div class="change-content">
+          <div class="change-title"><span class="tag tag-new">New</span>Calculate Hours from calendar job</div>
+          <div class="change-desc">Each job card has a Calc button that launches the calculator pre-configured for that job. Prep/wrap days auto-toggle the correct day type. Saved calculations restore times and results. A Save to Job button writes results back to the calendar entry. Shows "Saved" badge when calc data exists.</div>
+        </div>
+      </div>
+      <div class="change-item">
+        <div class="change-dot dot-improve"></div>
+        <div class="change-content">
+          <div class="change-title"><span class="tag tag-improve">Improved</span>Past events auto-grey</div>
+          <div class="change-desc">Jobs whose end date has passed automatically render with desaturated grey bars and reduced opacity in both the grid and detail cards.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CALCULATOR -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(255,149,0,0.12)">🧮</div>
+      <div>
+        <div class="section-title">Calculator</div>
+        <div class="section-sub">ACCP billing engine</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="change-item">
+        <div class="change-dot dot-new"></div>
+        <div class="change-content">
+          <div class="change-title"><span class="tag tag-new">New</span>Prep / Wrap day toggle per day</div>
+          <div class="change-desc">Each day panel has a Prep/Wrap day toggle. When enabled, Prep and Wrap type buttons appear — the first day defaults to Prep, the last day to Wrap. Rate auto-fills from the role's prep/wrap rate (Stylist $751, Asst Stylist/MU $502). Prep/Wrap days use a flat 10H rate with no OT or meal penalties.</div>
+        </div>
+      </div>
+      <div class="change-item">
+        <div class="change-dot dot-improve"></div>
+        <div class="change-content">
+          <div class="change-title"><span class="tag tag-improve">Improved</span>Styling &amp; Make Up roles simplified</div>
+          <div class="change-desc">Separate "(prep &amp; wrap)" role entries removed. Stylist, Assistant Stylist, and Assistant Make Up are now single entries. Prep/wrap rate is baked into each role and auto-fills when the day toggle is turned on.</div>
+        </div>
+      </div>
+      <div class="change-item">
+        <div class="change-dot dot-new"></div>
+        <div class="change-content">
+          <div class="change-title"><span class="tag tag-new">New</span>Save to Calendar from results</div>
+          <div class="change-desc">New "Save to Calendar" button in the results screen. Opens a sheet to confirm production name, dates, and colour, then saves the job with full calc data to the calendar and jumps straight to it.</div>
+        </div>
+      </div>
+      <div class="change-item">
+        <div class="change-dot tag-improve"></div>
+        <div class="change-content">
+          <div class="change-title"><span class="tag tag-improve">Improved</span>Prep/Wrap badge in results</div>
+          <div class="change-desc">Day result cards show a purple "prep" or green "wrap" badge on days with those toggles set, making multi-day breakdowns easy to scan.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIMESHEET -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(52,199,89,0.12)">📋</div>
+      <div>
+        <div class="section-title">Timesheet</div>
+        <div class="section-sub">Preview &amp; export</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="change-item">
+        <div class="change-dot dot-new"></div>
+        <div class="change-content">
+          <div class="change-title"><span class="tag tag-new">New</span>Export Excel button</div>
+          <div class="change-desc">Exports a full .xlsx workbook via SheetJS (loaded on demand). Includes all day rows with times and OT, totals, reimbursements, meal penalty details, and turnaround info. Each crew member gets their own sheet tab in batch mode.</div>
+        </div>
+      </div>
+      <div class="change-item">
+        <div class="change-dot dot-new"></div>
+        <div class="change-content">
+          <div class="change-title"><span class="tag tag-new">New</span>Meal penalties and turnaround in preview</div>
+          <div class="change-desc">A notes section below the earnings row now shows each meal penalty alert with day number and dollar amount, and each day-pair turnaround with rest hours and any shortfall penalty. Appears in both HTML preview and PDF/Excel exports.</div>
+        </div>
+      </div>
+      <div class="change-item">
+        <div class="change-dot dot-fix"></div>
+        <div class="change-content">
+          <div class="change-title"><span class="tag tag-fix">Fixed</span>Meal Pen column now shows dollar amount</div>
+          <div class="change-desc">The Meal Pen column in the timesheet table was showing blank. Now correctly displays the penalty dollar amount (e.g. $62.69) in the HTML preview, PDF export, and Excel export.</div>
+        </div>
+      </div>
+      <div class="change-item">
+        <div class="change-dot dot-new"></div>
+        <div class="change-content">
+          <div class="change-title"><span class="tag tag-new">New</span>Privacy notice on sensitive fields</div>
+          <div class="change-desc">A green "Never stored or transmitted — for your PDF only" notice appears below the SIN # and HST/GST number fields in both single and batch modes.</div>
+        </div>
+      </div>
+      <div class="change-item">
+        <div class="change-dot dot-new"></div>
+        <div class="change-content">
+          <div class="change-title"><span class="tag tag-new">New</span>Role dropdown in calendar Add Shoot sheet</div>
+          <div class="change-desc">The Role field is now a dropdown matching the full ACCP role list, grouped by department. Selecting a role auto-fills the Day rate field (flat roles fill the day rate; hourly roles fill rate × 10h).</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SPLASH SCREEN -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(175,82,222,0.12)">✨</div>
+      <div>
+        <div class="section-title">Splash Screen</div>
+        <div class="section-sub">Get started</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="change-item">
+        <div class="change-dot dot-improve"></div>
+        <div class="change-content">
+          <div class="change-title"><span class="tag tag-improve">Improved</span>Special thanks credit</div>
+          <div class="change-desc">Updated to read "Special Thanks to Dylan Pouliot, Warren Milando &amp; Al Kuipers" directly below the copyright line, with proper spacing above the Get Started button.</div>
+        </div>
+      </div>
+      <div class="change-item">
+        <div class="change-dot dot-improve"></div>
+        <div class="change-content">
+          <div class="change-title"><span class="tag tag-improve">Improved</span>Nav bar visible on splash</div>
+          <div class="change-desc">The bottom navigation bar now appears on the Get Started screen, giving access to the Calendar and Account tabs even before starting a calculation.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BUG FIXES -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(255,149,0,0.12)">🔧</div>
+      <div>
+        <div class="section-title">Bug Fixes</div>
+        <div class="section-sub">Stability &amp; layout</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="change-item">
+        <div class="change-dot dot-fix"></div>
+        <div class="change-content">
+          <div class="change-title"><span class="tag tag-fix">Fixed</span>Calendar and Save to Calendar sheets blocked by nav bar</div>
+          <div class="change-desc">Sheet z-index raised above the nav bar (1100 vs 1000). Nav bar also hides when any sheet opens and reappears when it closes. Cancel/Save buttons now always reachable above the home indicator.</div>
+        </div>
+      </div>
+      <div class="change-item">
+        <div class="change-dot dot-fix"></div>
+        <div class="change-content">
+          <div class="change-title"><span class="tag tag-fix">Fixed</span>Add Shoot button overlapping nav bar</div>
+          <div class="change-desc">Floating Add Shoot button repositioned 72px above the window bottom (above the nav bar). Calendar screen now has 130px bottom padding so job detail cards scroll fully clear of the button.</div>
+        </div>
+      </div>
+      <div class="change-item">
+        <div class="change-dot dot-fix"></div>
+        <div class="change-content">
+          <div class="change-title"><span class="tag tag-fix">Fixed</span>Calendar bar labels truncating</div>
+          <div class="change-desc">Labels now show on the first cell of every row the job spans (not just the very first day), centred over that row's visible portion. Bar shapes also fixed to round correctly at week breaks.</div>
+        </div>
+      </div>
+      <div class="change-item">
+        <div class="change-dot dot-fix"></div>
+        <div class="change-content">
+          <div class="change-title"><span class="tag tag-fix">Fixed</span>Get Started screen unresponsive</div>
+          <div class="change-desc">A literal newline inside a JS string in the calendar import handler was crashing the entire script block on load. Fixed by escaping as \n. All code passes Node.js syntax validation.</div>
+        </div>
+      </div>
+      <div class="change-item">
+        <div class="change-dot dot-fix"></div>
+        <div class="change-content">
+          <div class="change-title"><span class="tag tag-fix">Fixed</span>Safe area padding across all screens</div>
+          <div class="change-desc">Calendar header, role picker, invoice, account, and add-shoot sheet all respect env(safe-area-inset-top) and env(safe-area-inset-bottom). Back buttons and action buttons no longer hide behind the Dynamic Island or home indicator.</div>
+        </div>
+      </div>
+      <div class="change-item">
+        <div class="change-dot dot-fix"></div>
+        <div class="change-content">
+          <div class="change-title"><span class="tag tag-fix">Fixed</span>Delete button onclick syntax error</div>
+          <div class="change-desc">The trash button on calendar job cards had a broken onclick attribute with empty string concatenation. Fixed using HTML-encoded double quotes (&amp;quot;) for the job ID argument.</div>
+        </div>
+      </div>
+      <div class="change-item">
+        <div class="change-dot dot-fix"></div>
+        <div class="change-content">
+          <div class="change-title"><span class="tag tag-fix">Fixed</span>Turnaround data missing from timesheet</div>
+          <div class="change-desc">Turnaround info was only set in liveUpdatePreview (fires as you type) but not in generateSingle or generateBatch. Fixed across all three sheet-building paths plus buildTSHtml itself.</div>
+        </div>
+      </div>
+      <div class="change-item">
+        <div class="change-dot dot-fix"></div>
+        <div class="change-content">
+          <div class="change-title"><span class="tag tag-fix">Fixed</span>Corrupted double-document file</div>
+          <div class="change-desc">A failed function replacement resulted in a 5200-line double-document where the JS parser hit HTML mid-script. Reconstructed from the two clean sections back to a single 3300-line file.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <strong>Set Time Calculator</strong> · © 2026 Greyed Out LTD. All rights reserved.<br>
+  Special Thanks to Dylan Pouliot, Warren Milando &amp; Al Kuipers
+</div>
+
+</body>
+</html>
